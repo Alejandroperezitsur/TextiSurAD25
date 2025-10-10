@@ -1,0 +1,54 @@
+INFORME DE RESULTADOS DE PRUEBAS Y CALIDAD
+
+Fecha: 24 de mayo de 2025
+Proyecto: TEXTISUR
+
+1. Análisis de Resultados
+
+1.1. Cantidad de bugs y fallos encontrados
+- Se ejecutaron 4 pruebas unitarias sobre el registro de usuarios.
+- 3 pruebas pasaron correctamente (campos vacíos, correo inválido, contraseñas no coinciden).
+- 1 prueba falló: el registro exitoso devolvió un código 409 (conflicto) en vez de 201 (creado). Esto indica que probablemente el usuario ya existe en la base de datos, lo que sugiere un bug o un problema de datos de prueba.
+
+1.2. Resultados de la cobertura de código
+- Cobertura global de statements: 71.42%
+- Cobertura de branches: 80.95%
+- Cobertura de funciones: 100%
+- Cobertura de líneas: 73.52%
+- El archivo lib/sequelize.ts y el modelo User.ts tienen cobertura del 100%.
+- El endpoint pages/api/register.ts tiene una cobertura menor (64.28% statements, 66.66% líneas), con líneas no cubiertas entre la 15 y la 55.
+
+1.3. Resultados de análisis estático (ESLint)
+- Se detectaron varios errores y advertencias, principalmente:
+  - Variables definidas pero no usadas.
+  - Uso de require() en vez de import.
+  - Tipos any no especificados.
+  - Problemas menores de dependencias en hooks y caracteres no escapados en JSX.
+
+2. Plan de acciones
+
+2.1. Corregir el bug en el registro exitoso
+- Revisar la lógica de registro para evitar conflictos por usuarios existentes en los tests.
+- Limpiar la base de datos antes de cada prueba o usar datos únicos.
+
+2.2. Mejorar la cobertura de pruebas
+- Agregar más pruebas para cubrir los casos no testeados en register.ts (líneas 15, 28, 42-55).
+- Incluir pruebas para otros endpoints y componentes críticos.
+
+2.3. Corregir errores de ESLint
+- Eliminar variables no usadas y migrar a import en vez de require.
+- Especificar tipos en vez de usar any.
+- Corregir advertencias en hooks y JSX.
+
+2.4. Automatizar la ejecución de pruebas y linting
+- Configurar scripts en package.json para ejecutar pruebas y lint automáticamente antes de cada commit.
+
+2.5. Documentar los resultados
+- Incluir este análisis y los reportes de cobertura y ESLint como anexos en el documento Word.
+
+---
+
+Anexos:
+- Reporte de cobertura: Ver carpeta /coverage/lcov-report/index.html
+- Reporte de ESLint: Ver archivo eslint-report.txt
+- Resultados de pruebas: Ver tests/registro-usuarios.test.ts

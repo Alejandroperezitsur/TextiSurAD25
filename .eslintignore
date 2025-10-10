@@ -1,0 +1,7 @@
+# Por defecto, ESLint ignora archivos en node_modules, build, dist, etc.
+# Si quieres asegurarte de que no se ignora nada relevante, deja este archivo vacío o solo incluye carpetas a ignorar explícitamente.
+node_modules
+.next
+dist
+build
+coverage

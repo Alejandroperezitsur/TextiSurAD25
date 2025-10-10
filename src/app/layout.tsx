@@ -1,0 +1,234 @@
+// src/app/layout.tsx
+"use client"; // Make layout client component to manage state
+
+import type { Metadata } from "next";
+import { Inter } from "next/font/google"; // Using Inter as Geist is not standard
+import "./globals.css";
+import Link from "next/link";
+import { ShoppingCart, PackagePlus, Search, Loader2 } from "lucide-react"; // Added Loader2
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster";
+import { UserNav } from "@/components/layout/user-nav";
+import { Input } from "@/components/ui/input";
+import { CartProvider, useCart } from "@/context/CartContext"; // Import CartProvider and useCart
+import { AuthProvider, useAuth } from "@/context/AuthContext"; // Import AuthProvider and useAuth
+import { useState, type FormEvent } from "react"; // Import useState and FormEvent
+import { useRouter } from "next/navigation"; // Import useRouter
+import { Badge } from "@/components/ui/badge"; // Import Badge
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+
+const inter = Inter({
+  variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+// CartDisplay component to access cart context
+function CartDisplay() {
+  const { cartItems } = useCart();
+  const itemCount = cartItems.reduce((count, item) => count + item.quantity, 0);
+
+  return (
+    <Link href="/cart" aria-label="Carrito de Compras">
+      <Button variant="ghost" size="icon" className="relative">
+        <ShoppingCart className="h-5 w-5" />
+        {itemCount > 0 && (
+          <Badge
+            variant="destructive"
+            className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full text-xs"
+          >
+            {itemCount > 9 ? "9+" : itemCount}
+          </Badge>
+        )}
+        <span className="sr-only">
+          Carrito de Compras ({itemCount} artículos)
+        </span>
+      </Button>
+    </Link>
+  );
+}
+
+// Main layout content component
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const { user, logout, loading } = useAuth(); // Use auth context
+  const [headerSearchTerm, setHeaderSearchTerm] = useState(""); // State for header search input
+  const router = useRouter();
+
+  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (headerSearchTerm.trim()) {
+      router.push(
+        `/products?search=${encodeURIComponent(headerSearchTerm.trim())}`,
+      );
+      // setHeaderSearchTerm(''); // Optional: clear input after search
+    } else {
+      router.push("/products"); // Go to products page if search is empty
+    }
+  };
+
+  return (
+    <>
+      {/* Simplified Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background">
+        {" "}
+        {/* Removed blur */}
+        <div className="container mx-auto flex h-16 items-center">
+          <div className="mr-4 flex items-center">
+            <Link href="/" className="mr-6 flex items-center space-x-2">
+              {/* Optional: Could keep SVG if desired, but removing for minimalism */}
+              {/* <svg ...> ... </svg> */}
+              {/* Slightly smaller logo text */}
+              <span className="font-bold text-xl text-primary">TextiSur</span>
+            </Link>
+            <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+              <Link
+                href="/products"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                Productos
+              </Link>
+              {/* Show Vender link only if user is logged in and is a seller */}
+              {user?.role === "vendedor" && (
+                <Link
+                  href="/dashboard/vendedor"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center"
+                >
+                  <PackagePlus className="mr-1 h-4 w-4" /> Vender
+                </Link>
+              )}
+              <Link
+                href="/about"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                Nosotros
+              </Link>
+            </nav>
+          </div>
+
+          <div className="hidden sm:flex flex-1 items-center justify-center px-8">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="relative w-full max-w-sm"
+            >
+              <Input
+                type="search"
+                placeholder="Buscar productos..."
+                className="pl-10 pr-4" // Added pr-4 for spacing
+                value={headerSearchTerm}
+                onChange={(e) => setHeaderSearchTerm(e.target.value)}
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              {/* Hidden submit button to allow Enter key submission */}
+              <button type="submit" className="hidden" aria-hidden="true">
+                Buscar
+              </button>
+            </form>
+          </div>
+
+          <div className="flex items-center justify-end space-x-2 ml-auto">
+            {" "}
+            {/* Reduced space */}
+            <CartDisplay /> {/* Use the CartDisplay component */}
+            {loading ? (
+              // Skeleton/Loader while checking auth status
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-[80px]" />
+              </div>
+            ) : user ? (
+              <UserNav user={user} onLogout={logout} /> // Pass logout from context
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Iniciar Sesión
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm" className="btn-accent">
+                    Registrarse
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+      <main className="flex-1 w-full flex flex-col">{children}</main>
+      <Toaster />
+      {/* Simplified Footer */}
+      <footer className="w-full py-6 md:py-8 border-t bg-background">
+        {" "}
+        {/* Use background color and ensure full width */}
+        <div className="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row">
+          <p className="text-center text-xs text-muted-foreground md:text-left">
+            {" "}
+            {/* Smaller text */}© {new Date().getFullYear()} TextiSur. Todos
+            los derechos reservados.
+          </p>
+          <nav className="flex gap-4">
+            <Link
+              href="/privacy"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Privacidad
+            </Link>{" "}
+            {/* Smaller text */}
+            <Link
+              href="/terms"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Términos
+            </Link>{" "}
+            {/* Smaller text */}
+            <Link
+              href="/about"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Nosotros
+            </Link>{" "}
+            {/* Smaller text */}
+          </nav>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+// Renamed to MainLayout for clarity
+export default function MainLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="es" className={`${inter.variable} h-full dark`}>
+      <head>
+        {/*Ensure no whitespace here*/}
+        <title>TextiSur - Tu Mercado Textil Local</title>
+        {/*Ensure no whitespace here*/}
+        <meta
+          name="description"
+          content="Descubre, compra y vende prendas únicas de vendedores locales en TextiSur, el corazón de la industria textil."
+        />
+        {/*Ensure no whitespace here*/}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        {/*Ensure no whitespace here*/}
+      </head>
+      {/*Ensure no whitespace here*/}
+      <body
+        className={`font-sans antialiased flex flex-col min-h-screen w-full`}
+      >
+        <AuthProvider>
+          {" "}
+          {/* Wrap with AuthProvider */}
+          <CartProvider>
+            {" "}
+            {/* Wrap with CartProvider */}
+            <LayoutContent>{children}</LayoutContent>{" "}
+            {/* Render main content */}
+          </CartProvider>
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}

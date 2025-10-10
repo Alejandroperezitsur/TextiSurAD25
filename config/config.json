@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "textisur",
+    "password": "SQL55H7#",
+    "database": "textisur_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "textisur",
+    "password": "SQL55H7#",
+    "database": "textisur_test_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "textisur",
+    "password": "SQL55H7#",
+    "database": "textisur_prod_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}

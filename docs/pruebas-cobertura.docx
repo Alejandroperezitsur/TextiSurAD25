@@ -1,0 +1,25 @@
+EJECUCIÓN DE PRUEBAS DE COBERTURA (CAJA BLANCA)
+
+Fecha: 24 de mayo de 2025
+Proyecto: TEXTISUR
+
+Se ejecutaron pruebas de cobertura (caja blanca) utilizando Jest con el siguiente resultado:
+
+Resumen de cobertura:
+- Cobertura global de statements: 82.85%
+- Cobertura de branches: 76.19%
+- Cobertura de funciones: 100%
+- Cobertura de líneas: 85.29%
+
+Archivos destacados:
+- lib/sequelize.ts y models/User.ts tienen cobertura del 100% en todos los aspectos.
+- pages/api/register.ts tiene una cobertura de 78.57% en statements, 76.19% en branches y 81.48% en líneas. Las líneas no cubiertas son: 15, 28, 38, 54-55.
+
+Todas las pruebas unitarias pasaron correctamente (4/4 tests).
+
+Recomendaciones:
+- Aumentar la cobertura en el archivo register.ts agregando pruebas para los casos no cubiertos.
+- Mantener la cobertura alta en los módulos críticos del sistema.
+
+Anexo:
+- Para más detalles, consultar el reporte HTML en la carpeta /coverage/lcov-report/index.html
