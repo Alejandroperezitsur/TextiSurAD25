@@ -7,4 +7,5 @@ export type CartItem = {
   imageUrl: string;
   quantity: number;
   size: string; // Size selection
+  storeId?: string; // ID de la tienda asociada
 };

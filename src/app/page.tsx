@@ -51,6 +51,7 @@ const featuredProductsFull = [
     category: "Camisas",
     sizes: ["S", "M", "L", "XL"],
     hint: "teal shirt",
+    storeId: "store2", // Moda Urbana Hnos. Pérez
   },
   {
     id: "13",
@@ -60,6 +61,7 @@ const featuredProductsFull = [
     category: "Zapatos",
     sizes: ["40", "41", "42", "43", "44"],
     hint: "white sneakers",
+    storeId: "store7", // Calzados El Caminante
   },
   {
     id: "17",
@@ -69,7 +71,84 @@ const featuredProductsFull = [
     category: "Sudaderas",
     sizes: ["S", "M", "L", "XL"],
     hint: "grey hoodie",
+    storeId: "store2", // Moda Urbana Hnos. Pérez
   },
+];
+
+// Productos adicionales para asegurar que cada tienda tenga al menos un producto
+// Exportamos para que sea accesible desde la página de tienda
+export const allProducts = [
+  ...featuredProductsFull,
+  {
+    id: "2",
+    name: "Vestido Floral Verano",
+    price: 45.99,
+    imageUrl: "https://picsum.photos/seed/summerdress/400/500",
+    category: "Vestidos",
+    sizes: ["S", "M", "L"],
+    hint: "summer dress",
+    storeId: "store6", // El Vestidor de Ana
+  },
+  {
+    id: "3",
+    name: "Bufanda Artesanal",
+    price: 18.50,
+    imageUrl: "https://picsum.photos/seed/handmadescarf/400/500",
+    category: "Accesorios",
+    sizes: ["Única"],
+    hint: "handmade scarf",
+    storeId: "store1", // Artesanías Elena
+  },
+  {
+    id: "4",
+    name: "Gorro de Lana",
+    price: 15.99,
+    imageUrl: "https://picsum.photos/seed/woolhat/400/500",
+    category: "Accesorios",
+    sizes: ["Única"],
+    hint: "wool hat",
+    storeId: "store4", // Hilos del Sur
+  },
+  {
+    id: "5",
+    name: "Pijama Infantil",
+    price: 22.99,
+    imageUrl: "https://picsum.photos/seed/kidspajama/400/500",
+    category: "Ropa Infantil",
+    sizes: ["2", "4", "6", "8"],
+    hint: "kids pajama",
+    storeId: "store5", // Rincón Infantil
+  },
+  {
+    id: "6",
+    name: "Bolso de Mano",
+    price: 35.50,
+    imageUrl: "https://picsum.photos/seed/handbag/400/500",
+    category: "Accesorios",
+    sizes: ["Única"],
+    hint: "handbag",
+    storeId: "store8", // Accesorios Luna Mágica
+  },
+  {
+    id: "7",
+    name: "Camiseta Deportiva",
+    price: 28.99,
+    imageUrl: "https://picsum.photos/seed/sporttshirt/400/500",
+    category: "Ropa Deportiva",
+    sizes: ["S", "M", "L", "XL"],
+    hint: "sport shirt",
+    storeId: "store9", // Deportes Extremos Sur
+  },
+  {
+    id: "8",
+    name: "Vestido de Gala",
+    price: 89.99,
+    imageUrl: "https://picsum.photos/seed/eveningdress/400/500",
+    category: "Vestidos",
+    sizes: ["S", "M", "L"],
+    hint: "evening dress",
+    storeId: "store3", // Boutique Sol Naciente
+  }
 ];
 
 // Map to the structure expected by the homepage
@@ -81,6 +160,7 @@ const featuredProducts = featuredProductsFull.map((p) => ({
   category: p.category,
   sizes: p.sizes, // Keep sizes array
   hint: p.hint,
+  storeId: p.storeId,
 }));
 
 const categories = [
@@ -191,7 +271,8 @@ const featuredOffers = [
   },
 ];
 
-const registeredStores = [
+// Exportamos para que sea accesible desde la página de tienda
+export const registeredStores = [
   {
     id: "store1",
     name: "Artesanías Elena",
@@ -275,16 +356,56 @@ const registeredStores = [
   },
 ];
 
+// Función para obtener productos por tienda
+const getProductsByStore = (storeId: string) => {
+  return allProducts.filter(product => product.storeId === storeId);
+};
+
+// Función para obtener todos los productos
+const getAllProducts = () => {
+  return allProducts.map((p) => ({
+    id: parseInt(p.id, 10),
+    name: p.name,
+    price: p.price,
+    imageUrl: p.imageUrl,
+    category: p.category,
+    sizes: p.sizes,
+    hint: p.hint,
+    storeId: p.storeId,
+  }));
+};
+
 export default function HomePage() {
   const { addToCart } = useCart();
   const { toast } = useToast();
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
+  const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [filteredProducts, setFilteredProducts] = useState(getAllProducts());
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false }),
   );
+  
+  // Filtrar productos cuando cambia la tienda seleccionada
+  useEffect(() => {
+    if (selectedStore) {
+      const storeProducts = getProductsByStore(selectedStore);
+      setFilteredProducts(storeProducts.map(p => ({
+        id: parseInt(p.id, 10),
+        name: p.name,
+        price: p.price,
+        imageUrl: p.imageUrl,
+        category: p.category,
+        sizes: p.sizes,
+        hint: p.hint,
+        storeId: p.storeId,
+      })));
+    } else {
+      setFilteredProducts(getAllProducts());
+    }
+  }, [selectedStore]);
 
   useEffect(() => {
     if (!api) {
@@ -306,6 +427,7 @@ export default function HomePage() {
       imageUrl: product.imageUrl,
       quantity: 1,
       size: product.sizes[0] || "N/A", // Default to first size or N/A
+      storeId: product.storeId,
     };
     addToCart(itemToAdd);
     toast({
@@ -507,45 +629,96 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {registeredStores.map((store) => (
-              <Card
-                key={store.id}
-                className="overflow-hidden group border flex flex-col transition-all hover:shadow-lg"
-              >
-                <CardHeader className="p-0 relative">
-                  <Image
-                    src={store.imageUrl}
-                    alt={`Logo de ${store.name}`}
-                    width={600}
-                    height={400}
-                    className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
-                    data-ai-hint={store.dataAiHint}
-                  />
-                </CardHeader>
-                <CardContent className="p-4 flex-grow">
-                  <CardTitle className="text-xl font-semibold group-hover:text-primary mb-1">
-                    {store.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground line-clamp-3">
-                    {store.description}
-                  </CardDescription>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  {/* Optional: Link to products filtered by store if functionality exists */}
-                  {/* For now, a generic button or no button */}
-                  <Link
-                    href={`/products?search=${encodeURIComponent(store.name)}`}
-                    className="w-full"
-                  >
-                    <Button variant="outline" className="w-full">
-                      Ver Productos de {store.name.split(" ")[0]}
+              <Link key={store.id} href={`/stores/${store.slug}`} className="block h-full">
+                <Card className="overflow-hidden group border flex flex-col transition-all hover:shadow-lg">
+                  <CardHeader className="p-0 relative">
+                    <Image
+                      src={store.imageUrl}
+                      alt={`Logo de ${store.name}`}
+                      width={600}
+                      height={400}
+                      className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
+                      data-ai-hint={store.dataAiHint}
+                    />
+                  </CardHeader>
+                  <CardContent className="p-4 flex-grow">
+                    <CardTitle className="text-xl font-semibold group-hover:text-primary mb-1">
+                      {store.name}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground line-clamp-3">
+                      {store.description}
+                    </CardDescription>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Button className="w-full">
+                      Visitar Tienda
                     </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
+                  </CardFooter>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
       </section>
+      
+      {/* Products by Store Section */}
+      {selectedStore && (
+        <section className="py-12 bg-accent/5">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-bold tracking-tighter">
+                Productos de {registeredStores.find(store => store.id === selectedStore)?.name}
+              </h2>
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedStore(null)}
+              >
+                Ver todos los productos
+              </Button>
+            </div>
+            
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8">
+                {filteredProducts.map((product) => (
+                  <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
+                    <div className="relative aspect-square overflow-hidden">
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-all group-hover:scale-105"
+                      />
+                    </div>
+                    <CardContent className="p-5">
+                      <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{product.name}</CardTitle>
+                      <CardDescription className="line-clamp-2 mt-1">
+                        {product.category}
+                      </CardDescription>
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="font-bold text-lg text-primary">
+                          ${product.price.toFixed(2)}
+                        </div>
+                        <Button
+                          onClick={() => handleAddToCart(product)}
+                          className="rounded-full bg-primary hover:bg-primary/90"
+                          size="sm"
+                        >
+                          <ShoppingBag className="mr-2 h-4 w-4" />
+                          Añadir
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-xl text-muted-foreground">No hay productos disponibles para esta tienda.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Categories Section */}
       <section className="py-12 md:py-16 bg-gradient-to-b from-background to-primary/5">
