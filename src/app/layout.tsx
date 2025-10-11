@@ -67,22 +67,17 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {/* Simplified Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background">
-        {" "}
-        {/* Removed blur */}
+      {/* Header mejorado */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
         <div className="container mx-auto flex h-16 items-center">
           <div className="mr-4 flex items-center">
             <Link href="/" className="mr-6 flex items-center space-x-2">
-              {/* Optional: Could keep SVG if desired, but removing for minimalism */}
-              {/* <svg ...> ... </svg> */}
-              {/* Slightly smaller logo text */}
-              <span className="font-bold text-xl text-primary">TextiSur</span>
+              <span className="font-bold text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">TextiSur</span>
             </Link>
             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
               <Link
                 href="/products"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5"
               >
                 Productos
               </Link>
@@ -90,14 +85,14 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               {user?.role === "vendedor" && (
                 <Link
                   href="/dashboard/vendedor"
-                  className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center"
+                  className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5 flex items-center"
                 >
                   <PackagePlus className="mr-1 h-4 w-4" /> Vender
                 </Link>
               )}
               <Link
                 href="/about"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5"
               >
                 Nosotros
               </Link>
@@ -139,12 +134,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
             ) : (
               <div className="flex items-center space-x-2">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="hover:text-primary hover:bg-primary/5">
                     Iniciar Sesión
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm" className="btn-accent">
+                  <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
                     Registrarse
                   </Button>
                 </Link>
@@ -157,36 +152,29 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <Toaster />
       {/* Simplified Footer */}
       <footer className="w-full py-6 md:py-8 border-t bg-background">
-        {" "}
-        {/* Use background color and ensure full width */}
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-xs text-muted-foreground md:text-left">
-            {" "}
-            {/* Smaller text */}© {new Date().getFullYear()} TextiSur. Todos
-            los derechos reservados.
+            © {new Date().getFullYear()} TextiSur. Todos los derechos reservados.
           </p>
           <nav className="flex gap-4">
             <Link
               href="/privacy"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Privacidad
-            </Link>{" "}
-            {/* Smaller text */}
+            </Link>
             <Link
               href="/terms"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Términos
-            </Link>{" "}
-            {/* Smaller text */}
+            </Link>
             <Link
               href="/about"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               Nosotros
-            </Link>{" "}
-            {/* Smaller text */}
+            </Link>
           </nav>
         </div>
       </footer>
@@ -203,29 +191,19 @@ export default function MainLayout({
   return (
     <html lang="es" className={`${inter.variable} h-full dark`}>
       <head>
-        {/*Ensure no whitespace here*/}
         <title>TextiSur - Tu Mercado Textil Local</title>
-        {/*Ensure no whitespace here*/}
         <meta
           name="description"
           content="Descubre, compra y vende prendas únicas de vendedores locales en TextiSur, el corazón de la industria textil."
         />
-        {/*Ensure no whitespace here*/}
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        {/*Ensure no whitespace here*/}
       </head>
-      {/*Ensure no whitespace here*/}
       <body
-        className={`font-sans antialiased flex flex-col min-h-screen w-full`}
+        className="font-sans antialiased flex flex-col min-h-screen w-full"
       >
         <AuthProvider>
-          {" "}
-          {/* Wrap with AuthProvider */}
           <CartProvider>
-            {" "}
-            {/* Wrap with CartProvider */}
-            <LayoutContent>{children}</LayoutContent>{" "}
-            {/* Render main content */}
+            <LayoutContent>{children}</LayoutContent>
           </CartProvider>
         </AuthProvider>
       </body>

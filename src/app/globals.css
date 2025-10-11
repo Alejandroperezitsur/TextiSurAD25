@@ -2,82 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animaciones globales */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  .transition-all-smooth {
+    transition: all 0.3s ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer base {
   :root {
-    /* Light Mode - Cleaner, slightly softer */
-    --background: 0 0% 100%; /* White */
-    --foreground: 240 10% 3.9%; /* Dark blue-gray */
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 240 10% 3.9%;
+    /* Light Mode - Negro, Verde Oscuro y Amarillo Dorado */
+    --background: 0 0% 98%; /* Fondo claro */
+    --foreground: 0 0% 10%; /* Texto casi negro */
+    --card: 0 0% 100%; /* Tarjetas blancas */
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 180 70% 35%; /* Slightly desaturated Teal */
-    --primary-foreground: 180 100% 96%; /* Lighter teal/white */
-    --secondary: 240 5% 96%; /* Very light gray */
-    --secondary-foreground: 240 5% 30%; /* Darker text on light gray */
-    --muted: 240 5% 96%; /* Same as secondary for simplicity */
-    --muted-foreground: 240 5% 55%; /* Slightly lighter muted text */
-    --accent: 48 95% 65%; /* Slightly softer Mustard Yellow */
-    --accent-foreground: 48 100% 15%; /* Darker text on Yellow */
-    --destructive: 0 75% 60%; /* Slightly less intense red */
+    --popover-foreground: 0 0% 10%;
+    --primary: 145 50% 25%; /* Verde oscuro */
+    --primary-foreground: 0 0% 98%; /* Texto claro sobre verde */
+    --secondary: 0 0% 95%; /* Gris muy claro */
+    --secondary-foreground: 0 0% 20%; /* Texto oscuro sobre gris */
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 45 90% 50%; /* Amarillo dorado */
+    --accent-foreground: 0 0% 10%; /* Texto oscuro sobre amarillo */
+    --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 90%; /* Lighter gray border */
-    --input: 240 5% 90%; /* Lighter gray input border */
-    --ring: 48 95% 65%; /* Mustard Yellow for focus rings */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.75rem; /* Increased radius for softer corners */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 45 90% 50%; /* Amarillo dorado para focus */
+    --chart-1: 145 50% 25%; /* Verde oscuro */
+    --chart-2: 45 90% 50%; /* Amarillo dorado */
+    --chart-3: 0 0% 10%; /* Negro */
+    --chart-4: 145 30% 40%; /* Verde medio */
+    --chart-5: 45 70% 60%; /* Amarillo más claro */
+    --radius: 0.5rem;
+    --sidebar-background: 145 50% 25%; /* Verde oscuro */
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 90% 50%; /* Amarillo dorado */
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 145 30% 40%; /* Verde medio */
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 145 40% 20%;
+    --sidebar-ring: 45 90% 50%;
   }
 
   .dark {
-    /* Dark Mode - Adjusted for consistency */
-    --background: 240 10% 3.9%; /* Dark blue-gray */
-    --foreground: 0 0% 98%; /* White */
-    --card: 240 10% 6.9%; /* Slightly lighter dark */
+    /* Dark Mode - Negro, Verde Oscuro y Amarillo Dorado */
+    --background: 0 0% 10%; /* Fondo negro */
+    --foreground: 0 0% 98%; /* Texto claro */
+    --card: 0 0% 15%; /* Tarjetas gris muy oscuro */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
-    --primary: 180 70% 50%; /* Lighter Teal for dark mode */
-    --primary-foreground: 180 100% 96%; /* Light text on teal */
-    --secondary: 240 4% 12%; /* Darker gray */
-    --secondary-foreground: 0 0% 80%; /* Lighter text */
-    --muted: 240 4% 12%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 48 90% 60%; /* Slightly darker Mustard Yellow */
-    --accent-foreground: 48 100% 15%; /* Dark text on yellow */
-    --destructive: 0 65% 40%; /* Slightly desaturated dark red */
+    --primary: 145 40% 30%; /* Verde oscuro */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 20%; /* Gris oscuro */
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 45 80% 50%; /* Amarillo dorado */
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 65% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 15%; /* Darker gray border */
-    --input: 240 4% 15%; /* Darker gray input border */
-    --ring: 48 90% 60%; /* Slightly darker Mustard Yellow */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 45 80% 50%;
+    --chart-1: 145 40% 30%; /* Verde oscuro */
+    --chart-2: 45 80% 50%; /* Amarillo dorado */
+    --chart-3: 0 0% 90%; /* Blanco */
+    --chart-4: 145 30% 40%; /* Verde medio */
+    --chart-5: 45 70% 60%; /* Amarillo más claro */
+    --sidebar-background: 0 0% 15%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 80% 50%; /* Amarillo dorado */
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 145 40% 30%; /* Verde oscuro */
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 45 80% 50%;
   }
 }
 

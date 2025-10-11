@@ -16,7 +16,8 @@ import {
   Tag,
   Percent,
   Store as StoreIcon,
-} from "lucide-react"; // Added Percent and StoreIcon
+  ChevronRight,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
@@ -37,7 +38,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import React from "react";
+import { useRef, useState, useEffect, cloneElement } from "react";
 
 // Use a subset of the new product list for featured products
 const featuredProductsFull = [
@@ -277,15 +278,15 @@ const registeredStores = [
 export default function HomePage() {
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
 
-  const autoplayPlugin = React.useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true }),
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: false }),
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!api) {
       return;
     }
@@ -315,22 +316,22 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Simplified Hero Section */}
-      <section className="relative w-full py-24 md:py-36 lg:py-48 text-center overflow-hidden">
+      {/* Hero Section con Carrusel */}
+      <section className="relative w-full py-24 md:py-36 lg:py-48 text-center overflow-hidden animate-fade-in">
         <div className="absolute inset-0 z-[-1]">
           <Image
             src="https://picsum.photos/seed/textilesblur/1920/1080"
             alt="Fondo textil borroso"
             layout="fill"
             objectFit="cover"
-            className="filter blur-sm scale-105"
+            className="filter blur-sm scale-105 transition-transform duration-700"
             data-ai-hint="blurred background"
             priority
           />
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40"></div>
         </div>
         <div className="container mx-auto px-4 md:px-6 flex flex-col items-center text-center">
-          <div className="space-y-4 max-w-2xl">
+          <div className="space-y-4 max-w-2xl animate-slide-up">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl text-white">
               Tu Mercado Textil Local
             </h1>
@@ -342,7 +343,7 @@ export default function HomePage() {
               <Link href="/products">
                 <Button
                   size="lg"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:shadow-lg"
                 >
                   Explorar Productos
                 </Button>
@@ -351,7 +352,7 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-white text-white hover:bg-white/10 hover:text-white"
+                  className="border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300 hover:shadow-lg"
                 >
                   Vende Tus Artículos
                 </Button>
@@ -385,16 +386,14 @@ export default function HomePage() {
             <CarouselContent>
               {featuredOffers.map((offer) => (
                 <CarouselItem key={offer.id}>
-                  <Card className="overflow-hidden border-none shadow-none">
+                  <Card className="overflow-hidden border-none shadow-none transition-transform duration-300 hover:scale-[1.02]">
                     <div className="relative aspect-[3/1] w-full">
-                      {" "}
-                      {/* Aspect ratio for banners */}
                       <Image
                         src={offer.imageUrl}
                         alt={offer.altText}
                         layout="fill"
                         objectFit="cover"
-                        className="rounded-lg"
+                        className="rounded-lg transition-transform duration-500 hover:scale-105"
                         data-ai-hint={offer.dataAiHint}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent rounded-lg" />
@@ -429,59 +428,65 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-10">
-            Productos Destacados
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <section className="py-12 md:py-16 bg-accent/5">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <div className="inline-block bg-accent/20 px-3 py-1 rounded-full mb-2">
+                <span className="text-accent-foreground text-sm font-medium">Lo más vendido</span>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Productos Destacados
+              </h2>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Descubre nuestros productos más populares y las últimas
+                tendencias.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8 mt-10">
             {featuredProducts.map((product) => (
-              <Card
-                key={product.id}
-                className="overflow-hidden group border flex flex-col"
-              >
-                <CardHeader className="p-0 relative">
-                  <Link
-                    href={`/products/${product.id}`}
-                    aria-label={`Ver ${product.name}`}
-                  >
-                    <Image
-                      src={product.imageUrl}
-                      alt={`Imagen de ${product.name}`}
-                      width={400}
-                      height={500}
-                      className="object-cover w-full h-72 transition-transform duration-300 group-hover:scale-105"
-                      data-ai-hint={product.hint}
-                    />
-                  </Link>
-                </CardHeader>
-                <CardContent className="p-4 flex-grow">
-                  <CardTitle className="text-lg font-semibold truncate group-hover:text-primary">
-                    {product.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground">
+              <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
+                <div className="relative aspect-square overflow-hidden">
+                  <div className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
+                    Destacado
+                  </div>
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-all group-hover:scale-105"
+                  />
+                </div>
+                <CardContent className="p-5">
+                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{product.name}</CardTitle>
+                  <CardDescription className="line-clamp-2 mt-1">
                     {product.category}
                   </CardDescription>
-                  <p className="text-lg font-bold mt-2">
-                    ${product.price.toFixed(2)} MXN
-                  </p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="font-bold text-lg text-primary">
+                      ${product.price.toFixed(2)}
+                    </div>
+                    <Button
+                      onClick={() => handleAddToCart(product)}
+                      className="rounded-full bg-primary hover:bg-primary/90"
+                      size="sm"
+                    >
+                      <ShoppingBag className="mr-2 h-4 w-4" />
+                      Añadir
+                    </Button>
+                  </div>
                 </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Button
-                    className="w-full btn-accent"
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    <ShoppingBag className="mr-2 h-4 w-4" /> Añadir al Carrito
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>
-          <div className="text-center mt-12">
-            <Link href="/products">
-              <Button variant="outline" size="lg">
-                Ver Todos los Productos
-              </Button>
+          <div className="flex justify-center mt-12">
+            <Link
+              href="/products"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-medium text-accent-foreground shadow-md transition-all hover:bg-accent/90 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Ver Todos los Productos
+              <ChevronRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -543,24 +548,34 @@ export default function HomePage() {
       </section>
 
       {/* Categories Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-10">
-            Comprar por Categoría
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+      <section className="py-12 md:py-16 bg-gradient-to-b from-background to-primary/5">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <div className="inline-block bg-primary/10 px-3 py-1 rounded-full mb-2">
+                <span className="text-primary text-sm font-medium">Explora por categorías</span>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Categorías
+              </h2>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Explora nuestras categorías y encuentra lo que estás buscando.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6 mt-10">
             {categories.map((category) => (
               <Link
+                key={category.slug}
                 href={`/products?category=${category.slug}`}
-                key={category.name}
-                passHref
+                className="group relative flex flex-col items-center rounded-xl p-6 bg-card shadow-md transition-all hover:shadow-lg hover:scale-105 border border-border/50"
               >
-                <Card className="text-center border hover:border-primary transition-colors duration-300 p-6 flex flex-col items-center justify-center h-full cursor-pointer group aspect-square">
-                  {category.icon}
-                  <p className="font-semibold mt-2 group-hover:text-primary">
-                    {category.name}
-                  </p>
-                </Card>
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 mb-3">
+                  {cloneElement(category.icon as React.ReactElement, {
+                    className: "h-8 w-8 text-primary group-hover:text-primary"
+                  })}
+                </div>
+                <h3 className="text-base font-medium group-hover:text-primary">{category.name}</h3>
               </Link>
             ))}
           </div>
