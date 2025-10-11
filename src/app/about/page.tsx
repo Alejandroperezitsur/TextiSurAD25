@@ -56,11 +56,11 @@ export default function AboutPage() {
         </div>
         <div className="relative aspect-video rounded-lg overflow-hidden border">
           <Image
-            src="https://picsum.photos/seed/weavingloom/600/400"
-            alt="Telar tradicional con hilos coloridos"
+            src="https://periodicocorreo.com.mx/__export/sites/correo/img/2021/10/14/middle-plaza2-157234860.jpg"
+            alt="Taller textil con artesanos trabajando"
             layout="fill"
             objectFit="cover"
-            data-ai-hint="weaving loom" // Added data-ai-hint
+            data-ai-hint="textile workshop"
           />
         </div>
       </div>

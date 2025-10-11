@@ -30,6 +30,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "upload.wikimedia.org",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "periodicocorreo.com.mx",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "shasa.com",
         port: "",
         pathname: "/**",

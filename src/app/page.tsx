@@ -442,8 +442,8 @@ export default function HomePage() {
       <section className="relative w-full py-24 md:py-36 lg:py-48 text-center overflow-hidden animate-fade-in">
         <div className="absolute inset-0 z-[-1]">
           <Image
-            src="https://picsum.photos/seed/textilesblur/1920/1080"
-            alt="Fondo textil borroso"
+            src="https://upload.wikimedia.org/wikipedia/commons/8/80/Uriangato_Zona_Comercial_Textil_en_la_Av_%C3%81lvaro_Obreg%C3%B3n_112.jpg"
+            alt="Fondo textil colorido"
             layout="fill"
             objectFit="cover"
             className="filter blur-sm scale-105 transition-transform duration-700"
