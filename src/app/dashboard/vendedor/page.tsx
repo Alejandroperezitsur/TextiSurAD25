@@ -77,9 +77,18 @@ export default function SellerDashboardPage() {
       return;
     }
 
-    // Decodificar el token para obtener los datos del usuario
-    const userData = JSON.parse(atob(token.split(".")[1]));
-    setUser(userData);
+    // Obtener los datos del usuario directamente del localStorage
+    try {
+      const userData = JSON.parse(localStorage.getItem("user") || "null");
+      if (userData) {
+        setUser(userData);
+      } else {
+        router.push("/(auth)/login");
+      }
+    } catch (error) {
+      console.error("Error al obtener datos del usuario:", error);
+      router.push("/(auth)/login");
+    }
   }, [router]);
 
   const handleEdit = (id: number) => {

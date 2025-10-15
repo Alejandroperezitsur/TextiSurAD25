@@ -26,7 +26,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth(); // Get user and authLoading from AuthContext
+  const { user, login, loading: authLoading } = useAuth(); // Get user, login function and authLoading from AuthContext
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -38,28 +38,20 @@ export default function LoginPage() {
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await axios.post("/api/login", {
-        email,
-        password,
+      // Usar el método login del AuthContext
+      await login(email, password);
+
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Bienvenido de nuevo.",
+        variant: "default",
       });
 
-      if (response.status === 200) {
-        const { token, user } = response.data;
-
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: `Bienvenido de nuevo, ${user.name}.`,
-          variant: "default",
-        });
-
-        // Guardar el token en el almacenamiento local
-        localStorage.setItem("token", token);
-
-        // Redirigir al dashboard o página principal
-        router.push("/dashboard");
-      }
+      // Redirigir al dashboard o página principal
+      router.push("/dashboard");
     } catch (err) {
       const errorMessage =
         (err as any)?.response?.data?.message || "No se pudo iniciar sesión.";
@@ -69,6 +61,8 @@ export default function LoginPage() {
         description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 

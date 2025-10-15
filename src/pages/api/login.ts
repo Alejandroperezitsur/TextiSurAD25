@@ -22,11 +22,20 @@ export default async function handler(
   }
 
   try {
+    console.log("Intentando iniciar sesión con:", email);
+    
     // Buscar al usuario por correo
     const user = await User.findOne({ where: { email } });
+    
+    console.log("Usuario encontrado:", user ? "Sí" : "No");
 
+    // Verificar que el usuario exista
+    if (!user) {
+      return res.status(401).json({ message: "Credenciales inválidas" });
+    }
+    
     // Verificar que el campo password no sea nulo
-    if (!user || !user.password) {
+    if (!user.password) {
       console.error(
         "El usuario no tiene una contraseña válida en la base de datos.",
       );

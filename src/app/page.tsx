@@ -240,7 +240,7 @@ const categories = [
 const featuredOffers = [
   {
     id: "offer1",
-    imageUrl: "https://picsum.photos/seed/summersale/1200/400",
+    imageUrl: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=870",
     altText: "Oferta de verano con modelos sonriendo",
     title: "¡Oferta de Verano!",
     description: "Hasta 50% de descuento en vestidos y sandalias.",
@@ -250,7 +250,7 @@ const featuredOffers = [
   },
   {
     id: "offer2",
-    imageUrl: "https://picsum.photos/seed/newarrivals/1200/400",
+    imageUrl: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=870",
     altText: "Nuevas llegadas de ropa de temporada",
     title: "Nuevas Llegadas",
     description: "Descubre lo último en moda para esta temporada.",
@@ -260,7 +260,7 @@ const featuredOffers = [
   },
   {
     id: "offer3",
-    imageUrl: "https://picsum.photos/seed/limitedstock/1200/400",
+    imageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=870",
     altText: "Artículos exclusivos con stock limitado",
     title: "Stock Limitado",
     description:
