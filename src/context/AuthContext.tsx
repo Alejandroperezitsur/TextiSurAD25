@@ -21,6 +21,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  updateUser: (updated: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,7 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         
         // Actualizar el estado del usuario
         setUser(userData);
-        router.push("/dashboard/vendedor");
+        router.push("/");
         return;
       }
       
@@ -98,7 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         
         // Actualizar el estado del usuario
         setUser(userData);
-        router.push("/products");
+        router.push("/");
         return;
       }
       
@@ -130,8 +131,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     router.push("/");
   }, [router]);
 
+  const updateUser = useCallback((updated: User) => {
+    try {
+      // Actualizar estado y almacenamiento
+      setUser(updated);
+      localStorage.setItem("user", JSON.stringify(updated));
+    } catch (e) {
+      console.error("Error actualizando usuario en contexto:", e);
+    }
+  }, []);
+
   // Provide the context value
-  const value = { user, login, logout, loading };
+  const value = { user, login, logout, loading, updateUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

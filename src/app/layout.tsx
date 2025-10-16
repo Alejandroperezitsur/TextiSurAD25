@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google"; // Using Inter as Geist is not standard
 import "./globals.css";
 import Link from "next/link";
-import { ShoppingCart, PackagePlus, Search, Loader2 } from "lucide-react"; // Added Loader2
+import { ShoppingCart, PackagePlus, Search, Loader2, Clock } from "lucide-react"; // Added Loader2 and Clock
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { UserNav } from "@/components/layout/user-nav";
@@ -81,6 +81,15 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               >
                 Productos
               </Link>
+              {/* Mostrar Mis Pedidos solo si el usuario es comprador */}
+              {user?.role === "comprador" && (
+                <Link
+                  href="/orders/history"
+                  className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5 flex items-center"
+                >
+                  <Clock className="mr-1 h-4 w-4" /> Mis pedidos
+                </Link>
+              )}
               {/* Show Vender link only if user is logged in and is a seller */}
               {user?.role === "vendedor" && (
                 <Link
@@ -133,12 +142,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               <UserNav user={user} onLogout={logout} /> // Pass logout from context
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/login">
+                <Link href="/(auth)/login">
                   <Button variant="ghost" size="sm" className="hover:text-primary hover:bg-primary/5">
                     Iniciar Sesión
                   </Button>
                 </Link>
-                <Link href="/register">
+                <Link href="/(auth)/register">
                   <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
                     Registrarse
                   </Button>

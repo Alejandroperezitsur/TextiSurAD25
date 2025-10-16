@@ -87,11 +87,9 @@ export function UserNav({ user, onLogout }: UserNavProps) {
             </Link>
           </DropdownMenuItem>
         ) : (
-          // Link to a buyer-specific order history page (if available)
+          // Link to buyer order history
           <DropdownMenuItem asChild>
-            <Link href="/orders">
-              {" "}
-              {/* TODO: Create /orders page */}
+            <Link href="/orders/history">
               <ListOrdered className="mr-2 h-4 w-4" />
               <span>Mis Pedidos</span>
             </Link>

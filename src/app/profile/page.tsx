@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 import Link from "next/link"; // Added Link
 
 export default function ProfilePage() {
-  const { user, login, loading: authLoading } = useAuth(); // Get user, login, and loading state from context
+  const { user, updateUser, loading: authLoading } = useAuth(); // Get user, updateUser, and loading state from context
   const router = useRouter();
   const { toast } = useToast();
 
@@ -106,8 +106,8 @@ export default function ProfilePage() {
       avatarUrl: newAvatarUrl,
     };
 
-    // Update global auth state by calling login with the new user data
-    login(updatedUserData);
+    // Update global auth state using updateUser
+    updateUser(updatedUserData);
 
     toast({
       title: "Perfil Actualizado",
@@ -285,6 +285,14 @@ export default function ProfilePage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Acceso rápido al historial de pedidos para compradores */}
+            {user.role === "comprador" && (
+              <div className="flex justify-start">
+                <Button asChild variant="outline">
+                  <Link href="/orders/history">Mis pedidos</Link>
+                </Button>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name">Nombre Completo</Label>
               <Input
