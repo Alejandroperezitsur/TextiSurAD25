@@ -16,8 +16,8 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Mock data for seller's products - Using a subset of the new real product data
-const sellerProducts = [
+// Datos por defecto de productos del vendedor
+const defaultSellerProducts = [
   {
     id: 1,
     name: "Camisa Clásica Teal",
@@ -68,6 +68,7 @@ interface User {
 
 export default function SellerDashboardPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [sellerProducts, setSellerProducts] = useState<typeof defaultSellerProducts>(defaultSellerProducts);
   const router = useRouter();
 
   useEffect(() => {
@@ -82,6 +83,13 @@ export default function SellerDashboardPage() {
       const userData = JSON.parse(localStorage.getItem("user") || "null");
       if (userData) {
         setUser(userData);
+        // Cargar productos desde localStorage si existen
+        try {
+          const stored = JSON.parse(localStorage.getItem("seller-products") || "null");
+          if (Array.isArray(stored) && stored.length) {
+            setSellerProducts(stored);
+          }
+        } catch {}
       } else {
         router.push("/(auth)/login");
       }
@@ -92,8 +100,7 @@ export default function SellerDashboardPage() {
   }, [router]);
 
   const handleEdit = (id: number) => {
-    console.log(`Edit product ${id}`);
-    alert(`Editar producto ${id} (funcionalidad pendiente)`);
+    router.push(`/dashboard/vendedor/products/${id}/edit`);
   };
 
   const handleDelete = (id: number) => {
@@ -137,11 +144,19 @@ export default function SellerDashboardPage() {
         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
           Mis Publicaciones
         </h1>
-        <Link href="/dashboard/vendedor/nuevo">
-          <Button className="btn-accent w-full sm:w-auto">
-            <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Producto
+        <div className="flex gap-2">
+          <Button asChild className="btn-accent w-full sm:w-auto">
+            <Link href="/dashboard/vendedor/nuevo">
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Producto
+            </Link>
           </Button>
-        </Link>
+          <Button asChild variant="outline" className="w-full sm:w-auto">
+            <Link href="/dashboard/vendedor/store">Mi tienda</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full sm:w-auto">
+            <Link href="/dashboard/vendedor/store/edit">Editar tienda</Link>
+          </Button>
+        </div>
       </div>
 
       {sellerProducts.length === 0 ? (
@@ -150,9 +165,9 @@ export default function SellerDashboardPage() {
           <p className="text-xl text-muted-foreground mb-4">
             Aún no tienes productos publicados.
           </p>
-          <Link href="/dashboard/vendedor/nuevo">
-            <Button className="btn-accent">Publicar mi primer producto</Button>
-          </Link>
+          <Button asChild className="btn-accent">
+            <Link href="/dashboard/vendedor/nuevo">Publicar mi primer producto</Link>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

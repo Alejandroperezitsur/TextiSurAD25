@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +30,7 @@ export default function StorePage() {
   const [store, setStore] = useState<any>(null);
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     // Simulamos una carga de datos
@@ -46,6 +48,40 @@ export default function StorePage() {
       );
       
       setStoreProducts(products);
+
+      // Determinar si la tienda pertenece al usuario actual
+      const checkOwnership = async () => {
+        try {
+          const userRaw = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+          const user = userRaw ? JSON.parse(userRaw) : null;
+          const email = user?.email as string | undefined;
+          if (email) {
+            const resp = await fetch(`/api/stores/by-user?email=${encodeURIComponent(email)}`);
+            if (resp.ok) {
+              const data = await resp.json();
+              const slugOwned = data?.store?.slug as string | undefined;
+              if (slugOwned && slugOwned === foundStore.slug) {
+                setIsOwner(true);
+              } else {
+                setIsOwner(false);
+              }
+            } else if (resp.status === 404) {
+              // Fallback a localStorage
+              try {
+                const ls = localStorage.getItem("seller-store");
+                if (ls) {
+                  const s = JSON.parse(ls);
+                  const slugOwned = s?.slug as string | undefined;
+                  setIsOwner(Boolean(slugOwned && slugOwned === foundStore.slug));
+                }
+              } catch {}
+            }
+          }
+        } catch {
+          setIsOwner(false);
+        }
+      };
+      checkOwnership();
     }
     
     setLoading(false);
@@ -99,9 +135,24 @@ export default function StorePage() {
           />
         </div>
         
-        <div className="w-full md:w-2/3">
-          <h1 className="text-4xl font-bold mb-4">{store.name}</h1>
-          <p className="text-lg text-muted-foreground mb-6">{store.description}</p>
+      <div className="w-full md:w-2/3">
+        <h1 className="text-4xl font-bold mb-4">{store.name}</h1>
+        {isOwner && (
+          <div className="inline-block bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full mb-4">
+            Tu tienda
+          </div>
+        )}
+        <p className="text-lg text-muted-foreground mb-6">{store.description}</p>
+        {isOwner && (
+          <div className="flex gap-2 mb-6">
+            <Button asChild variant="outline">
+              <Link href="/dashboard/vendedor/store/edit">Editar tienda</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/dashboard/vendedor/nuevo">Agregar producto</Link>
+            </Button>
+          </div>
+        )}
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {/* Horarios */}
@@ -145,6 +196,11 @@ export default function StorePage() {
           {storeProducts.map((product) => (
             <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
               <div className="relative aspect-square overflow-hidden">
+                {isOwner && (
+                  <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    Tu producto
+                  </div>
+                )}
                 <Image
                   src={product.imageUrl}
                   alt={product.name}
@@ -169,6 +225,11 @@ export default function StorePage() {
                     <ShoppingBag className="mr-2 h-4 w-4" />
                     Añadir
                   </Button>
+                  {isOwner && (
+                    <Button asChild variant="outline" size="sm" className="ml-2">
+                      <Link href={`/dashboard/vendedor/products/${typeof product.id === 'number' ? product.id : parseInt(product.id, 10)}/edit`}>Editar</Link>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

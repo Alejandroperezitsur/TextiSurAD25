@@ -387,21 +387,48 @@ export default function HomePage() {
   const [count, setCount] = useState(0);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [filteredProducts, setFilteredProducts] = useState(getAllProducts());
+  const [ownerStoreId, setOwnerStoreId] = useState<string | null>(null);
+  const [ownerStoreSlug, setOwnerStoreSlug] = useState<string | null>(null);
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false }),
   );
 
-  // Redirección post-login al dashboard adecuado según el rol
+  // Mantener Home visible para cualquier rol; solo obtener tienda del usuario
   useEffect(() => {
     if (loading) return;
     if (!user) return;
-    if (user.role === "vendedor") {
-      router.replace("/dashboard/vendedor");
-    } else if (user.role === "comprador") {
-      router.replace("/products");
-    }
-  }, [user, loading, router]);
+    const fetchStore = async () => {
+      try {
+        const resp = await fetch(`/api/stores/by-user?email=${encodeURIComponent(user.email)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          const s = data.store;
+          const slug = s?.slug as string | undefined;
+          if (slug) {
+            setOwnerStoreSlug(slug);
+            const rs = registeredStores.find((r) => r.slug === slug);
+            setOwnerStoreId(rs?.id ?? null);
+          }
+        } else if (resp.status === 404) {
+          // Fallback a localStorage si ya se asignó previamente
+          try {
+            const ls = localStorage.getItem("seller-store");
+            if (ls) {
+              const s = JSON.parse(ls);
+              const slug = s?.slug as string | undefined;
+              if (slug) {
+                setOwnerStoreSlug(slug);
+                const rs = registeredStores.find((r) => r.slug === slug);
+                setOwnerStoreId(rs?.id ?? null);
+              }
+            }
+          } catch {}
+        }
+      } catch {}
+    };
+    fetchStore();
+  }, [user, loading]);
   
   // Filtrar productos cuando cambia la tienda seleccionada
   useEffect(() => {
@@ -585,6 +612,11 @@ export default function HomePage() {
             {featuredProducts.map((product) => (
               <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
                 <div className="relative aspect-square overflow-hidden">
+                  {ownerStoreId && product.storeId === ownerStoreId && (
+                    <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      Tu producto
+                    </div>
+                  )}
                   <div className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
                     Destacado
                   </div>
@@ -612,6 +644,11 @@ export default function HomePage() {
                       <ShoppingBag className="mr-2 h-4 w-4" />
                       Añadir
                     </Button>
+                    {ownerStoreId && product.storeId === ownerStoreId && (
+                      <Button asChild variant="outline" size="sm" className="ml-2">
+                        <Link href={`/dashboard/vendedor/products/${product.id}/edit`}>Editar</Link>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -638,39 +675,49 @@ export default function HomePage() {
               Destacadas
             </h2>
             {/* This link might go to a future dedicated stores page */}
-            <Link href="/products">
-              <Button variant="outline">Ver Todas las Tiendas</Button>
-            </Link>
+            <Button asChild variant="outline">
+              <Link href="/products">Ver Todas las Tiendas</Link>
+            </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {registeredStores.map((store) => (
-              <Link key={store.id} href={`/stores/${store.slug}`} className="block h-full">
-                <Card className="overflow-hidden group border flex flex-col transition-all hover:shadow-lg">
-                  <CardHeader className="p-0 relative">
-                    <Image
-                      src={store.imageUrl}
-                      alt={`Logo de ${store.name}`}
-                      width={600}
-                      height={400}
-                      className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
-                      data-ai-hint={store.dataAiHint}
-                    />
-                  </CardHeader>
-                  <CardContent className="p-4 flex-grow">
-                    <CardTitle className="text-xl font-semibold group-hover:text-primary mb-1">
-                      {store.name}
-                    </CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground line-clamp-3">
-                      {store.description}
-                    </CardDescription>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <Button className="w-full">
-                      Visitar Tienda
+              <Card key={store.id} className="overflow-hidden group border flex flex-col transition-all hover:shadow-lg">
+                <CardHeader className="p-0 relative">
+                  {ownerStoreId && store.id === ownerStoreId && (
+                    <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      Tu tienda
+                    </div>
+                  )}
+                  <Image
+                    src={store.imageUrl}
+                    alt={`Logo de ${store.name}`}
+                    width={600}
+                    height={400}
+                    className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
+                    data-ai-hint={store.dataAiHint}
+                  />
+                </CardHeader>
+                <CardContent className="p-4 flex-grow">
+                  <CardTitle className="text-xl font-semibold group-hover:text-primary mb-1">
+                    {store.name}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground line-clamp-3">
+                    {store.description}
+                  </CardDescription>
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
+                  <div className="flex w-full gap-2">
+                    <Button asChild className="flex-1">
+                      <Link href={`/stores/${store.slug}`}>Visitar Tienda</Link>
                     </Button>
-                  </CardFooter>
-                </Card>
-              </Link>
+                    {ownerStoreId && store.id === ownerStoreId && (
+                      <Button asChild variant="outline" className="flex-1">
+                        <Link href="/dashboard/vendedor/store/edit">Editar tienda</Link>
+                      </Button>
+                    )}
+                  </div>
+                </CardFooter>
+              </Card>
             ))}
           </div>
         </div>
@@ -697,6 +744,11 @@ export default function HomePage() {
                 {filteredProducts.map((product) => (
                   <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
                     <div className="relative aspect-square overflow-hidden">
+                      {ownerStoreId && product.storeId === ownerStoreId && (
+                        <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                          Tu producto
+                        </div>
+                      )}
                       <Image
                         src={product.imageUrl}
                         alt={product.name}
@@ -721,6 +773,11 @@ export default function HomePage() {
                           <ShoppingBag className="mr-2 h-4 w-4" />
                           Añadir
                         </Button>
+                        {ownerStoreId && product.storeId === ownerStoreId && (
+                          <Button asChild variant="outline" size="sm" className="ml-2">
+                            <Link href={`/dashboard/vendedor/products/${product.id}/edit`}>Editar</Link>
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
