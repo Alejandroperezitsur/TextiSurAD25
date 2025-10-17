@@ -142,12 +142,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               <UserNav user={user} onLogout={logout} /> // Pass logout from context
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/(auth)/login">
+                <Link href="/login">
                   <Button variant="ghost" size="sm" className="hover:text-primary hover:bg-primary/5">
                     Iniciar Sesión
                   </Button>
                 </Link>
-                <Link href="/(auth)/register">
+                <Link href="/register">
                   <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
                     Registrarse
                   </Button>

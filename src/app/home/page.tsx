@@ -40,10 +40,10 @@ export default function HomePage() {
       {!user && (
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
           <Button asChild size="lg">
-            <Link href="/(auth)/login">Iniciar Sesión</Link>
+        <Link href="/login">Iniciar Sesión</Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/(auth)/register">Registrarse</Link>
+        <Link href="/register">Registrarse</Link>
           </Button>
         </div>
       )}

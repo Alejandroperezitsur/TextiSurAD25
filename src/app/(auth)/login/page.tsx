@@ -50,8 +50,8 @@ export default function LoginPage() {
         variant: "default",
       });
 
-      // Redirigir al dashboard o página principal
-      router.push("/dashboard");
+      // Redirigir a la raíz; la home se encargará de enviar al dashboard correcto por rol
+      router.push("/");
     } catch (err) {
       const errorMessage =
         (err as any)?.response?.data?.message || "No se pudo iniciar sesión.";

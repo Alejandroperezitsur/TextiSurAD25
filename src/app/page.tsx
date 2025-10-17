@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef, useState, useEffect, cloneElement } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 // Use a subset of the new product list for featured products
 const featuredProductsFull = [
@@ -378,6 +380,8 @@ const getAllProducts = () => {
 export default function HomePage() {
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
@@ -387,6 +391,17 @@ export default function HomePage() {
   const autoplayPlugin = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false }),
   );
+
+  // Redirección post-login al dashboard adecuado según el rol
+  useEffect(() => {
+    if (loading) return;
+    if (!user) return;
+    if (user.role === "vendedor") {
+      router.replace("/dashboard/vendedor");
+    } else if (user.role === "comprador") {
+      router.replace("/products");
+    }
+  }, [user, loading, router]);
   
   // Filtrar productos cuando cambia la tienda seleccionada
   useEffect(() => {
