@@ -77,6 +77,49 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      // Added missing domain for next/image usage
+      {
+        protocol: "https",
+        hostname: "www.innvictus.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "http2.mlstatic.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "m.media-amazon.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "ss421.liverpool.com.mx",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "app.cuidadoconelperro.com.mx",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "image.hm.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "ae-pic-a1.aliexpress-media.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

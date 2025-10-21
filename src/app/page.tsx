@@ -17,6 +17,8 @@ import {
   Percent,
   Store as StoreIcon,
   ChevronRight,
+  Star,
+  Truck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -54,6 +56,8 @@ const featuredProductsFull = [
     sizes: ["S", "M", "L", "XL"],
     hint: "teal shirt",
     storeId: "store2", // Moda Urbana Hnos. Pérez
+    rating: 4.5,
+    hasDelivery: true,
   },
   {
     id: "13",
@@ -64,6 +68,8 @@ const featuredProductsFull = [
     sizes: ["40", "41", "42", "43", "44"],
     hint: "white sneakers",
     storeId: "store7", // Calzados El Caminante
+    rating: 4.7,
+    hasDelivery: true,
   },
   {
     id: "17",
@@ -74,6 +80,8 @@ const featuredProductsFull = [
     sizes: ["S", "M", "L", "XL"],
     hint: "grey hoodie",
     storeId: "store2", // Moda Urbana Hnos. Pérez
+    rating: 4.5,
+    hasDelivery: false,
   },
 ];
 
@@ -90,6 +98,8 @@ export const allProducts = [
     sizes: ["S", "M", "L"],
     hint: "summer dress",
     storeId: "store6", // El Vestidor de Ana
+    rating: 4.6,
+    hasDelivery: true,
   },
   {
     id: "3",
@@ -100,6 +110,8 @@ export const allProducts = [
     sizes: ["Única"],
     hint: "handmade scarf",
     storeId: "store1", // Artesanías Elena
+    rating: 4.2,
+    hasDelivery: false,
   },
   {
     id: "4",
@@ -110,6 +122,8 @@ export const allProducts = [
     sizes: ["Única"],
     hint: "wool hat",
     storeId: "store4", // Hilos del Sur
+    rating: 4.3,
+    hasDelivery: true,
   },
   {
     id: "5",
@@ -120,6 +134,8 @@ export const allProducts = [
     sizes: ["2", "4", "6", "8"],
     hint: "kids pajama",
     storeId: "store5", // Rincón Infantil
+    rating: 4.5,
+    hasDelivery: true,
   },
   {
     id: "6",
@@ -130,6 +146,8 @@ export const allProducts = [
     sizes: ["Única"],
     hint: "handbag",
     storeId: "store8", // Accesorios Luna Mágica
+    rating: 4.4,
+    hasDelivery: true,
   },
   {
     id: "7",
@@ -140,6 +158,8 @@ export const allProducts = [
     sizes: ["S", "M", "L", "XL"],
     hint: "sport shirt",
     storeId: "store9", // Deportes Extremos Sur
+    rating: 4.6,
+    hasDelivery: true,
   },
   {
     id: "8",
@@ -150,6 +170,8 @@ export const allProducts = [
     sizes: ["S", "M", "L"],
     hint: "evening dress",
     storeId: "store3", // Boutique Sol Naciente
+    rating: 4.8,
+    hasDelivery: true,
   }
 ];
 
@@ -163,6 +185,8 @@ const featuredProducts = featuredProductsFull.map((p) => ({
   sizes: p.sizes, // Keep sizes array
   hint: p.hint,
   storeId: p.storeId,
+  rating: typeof p.rating === "number" ? p.rating : 4.5,
+  hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
 }));
 
 const categories = [
@@ -374,6 +398,9 @@ const getAllProducts = () => {
     sizes: p.sizes,
     hint: p.hint,
     storeId: p.storeId,
+    rating: typeof (p as any).rating === "number" ? (p as any).rating : 4.5,
+    hasDelivery:
+      typeof (p as any).hasDelivery === "boolean" ? (p as any).hasDelivery : true,
   }));
 };
 
@@ -443,6 +470,9 @@ export default function HomePage() {
         sizes: p.sizes,
         hint: p.hint,
         storeId: p.storeId,
+        rating: typeof (p as any).rating === "number" ? (p as any).rating : 4.5,
+        hasDelivery:
+          typeof (p as any).hasDelivery === "boolean" ? (p as any).hasDelivery : true,
       })));
     } else {
       setFilteredProducts(getAllProducts());
@@ -486,8 +516,8 @@ export default function HomePage() {
           <Image
             src="https://upload.wikimedia.org/wikipedia/commons/8/80/Uriangato_Zona_Comercial_Textil_en_la_Av_%C3%81lvaro_Obreg%C3%B3n_112.jpg"
             alt="Fondo textil colorido"
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{ objectFit: "cover" }}
             className="filter blur-sm scale-105 transition-transform duration-700"
             data-ai-hint="blurred background"
             priority
@@ -555,8 +585,8 @@ export default function HomePage() {
                       <Image
                         src={offer.imageUrl}
                         alt={offer.altText}
-                        layout="fill"
-                        objectFit="cover"
+                        fill
+                        style={{ objectFit: "cover" }}
                         className="rounded-lg transition-transform duration-500 hover:scale-105"
                         data-ai-hint={offer.dataAiHint}
                       />
@@ -610,7 +640,11 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8 mt-10">
             {featuredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
+              <Card
+                key={product.id}
+                onClick={() => router.push(`/products/${product.id}`)}
+                className="cursor-pointer overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg"
+              >
                 <div className="relative aspect-square overflow-hidden">
                   {ownerStoreId && product.storeId === ownerStoreId && (
                     <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -632,12 +666,25 @@ export default function HomePage() {
                   <CardDescription className="line-clamp-2 mt-1">
                     {product.category}
                   </CardDescription>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <span className="font-medium">Tallas:</span> {product.sizes.join(", ")}
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-sm">
+                    <span className="flex items-center text-yellow-500">
+                      <Star className="h-4 w-4 mr-1" />
+                      {product.rating.toFixed(1)}
+                    </span>
+                    <span className="flex items-center text-muted-foreground">
+                      <Truck className="h-4 w-4 mr-1" />
+                      {product.hasDelivery ? "Envío a domicilio" : "Sin envío"}
+                    </span>
+                  </div>
                   <div className="mt-4 flex items-center justify-between">
                     <div className="font-bold text-lg text-primary">
                       ${product.price.toFixed(2)}
                     </div>
                     <Button
-                      onClick={() => handleAddToCart(product)}
+                      onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}
                       className="rounded-full bg-primary hover:bg-primary/90"
                       size="sm"
                     >
@@ -646,7 +693,7 @@ export default function HomePage() {
                     </Button>
                     {ownerStoreId && product.storeId === ownerStoreId && (
                       <Button asChild variant="outline" size="sm" className="ml-2">
-                        <Link href={`/dashboard/vendedor/products/${product.id}/edit`}>Editar</Link>
+                        <Link href={`/dashboard/vendedor/products/${product.id}/edit`} onClick={(e) => e.stopPropagation()}>Editar</Link>
                       </Button>
                     )}
                   </div>
@@ -667,7 +714,7 @@ export default function HomePage() {
       </section>
 
       {/* Registered Stores Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/50">
+      <section id="tiendas" className="w-full py-12 md:py-24 lg:py-32 bg-secondary/50">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl flex items-center">
@@ -742,7 +789,7 @@ export default function HomePage() {
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8">
                 {filteredProducts.map((product) => (
-                  <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
+                  <Card key={product.id} onClick={() => router.push(`/products/${product.id}`)} className="cursor-pointer overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
                     <div className="relative aspect-square overflow-hidden">
                       {ownerStoreId && product.storeId === ownerStoreId && (
                         <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -761,12 +808,25 @@ export default function HomePage() {
                       <CardDescription className="line-clamp-2 mt-1">
                         {product.category}
                       </CardDescription>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        <span className="font-medium">Tallas:</span> {product.sizes.join(", ")}
+                      </div>
+                      <div className="mt-2 flex items-center gap-3 text-sm">
+                        <span className="flex items-center text-yellow-500">
+                          <Star className="h-4 w-4 mr-1" />
+                          {product.rating.toFixed(1)}
+                        </span>
+                        <span className="flex items-center text-muted-foreground">
+                          <Truck className="h-4 w-4 mr-1" />
+                          {product.hasDelivery ? "Envío a domicilio" : "Sin envío"}
+                        </span>
+                      </div>
                       <div className="mt-4 flex items-center justify-between">
                         <div className="font-bold text-lg text-primary">
                           ${product.price.toFixed(2)}
                         </div>
                         <Button
-                          onClick={() => handleAddToCart(product)}
+                          onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}
                           className="rounded-full bg-primary hover:bg-primary/90"
                           size="sm"
                         >
@@ -775,7 +835,7 @@ export default function HomePage() {
                         </Button>
                         {ownerStoreId && product.storeId === ownerStoreId && (
                           <Button asChild variant="outline" size="sm" className="ml-2">
-                            <Link href={`/dashboard/vendedor/products/${product.id}/edit`}>Editar</Link>
+                            <Link href={`/dashboard/vendedor/products/${product.id}/edit`} onClick={(e) => e.stopPropagation()}>Editar</Link>
                           </Button>
                         )}
                       </div>

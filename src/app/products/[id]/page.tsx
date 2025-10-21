@@ -16,6 +16,7 @@ import Image from "next/image";
 import Link from "next/link"; // Added Link
 import { notFound, useRouter } from "next/navigation"; // Added useRouter
 import { useState, useEffect } from "react"; // Added useEffect
+import { use } from "react"; // Added for params unwrapping
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,7 @@ const products = [
       "Una camisa cómoda y elegante en nuestro color teal característico. Hecha de 100% algodón orgánico.",
     category: "Camisas",
     sizes: ["S", "M", "L", "XL"],
+    stock: 25,
     rating: 4.5,
     reviews: 120,
     material: "100% Algodón Orgánico",
@@ -56,6 +58,7 @@ const products = [
       "Jeans grises duraderos y suaves, perfectos para el uso diario. Diseño clásico de cinco bolsillos.",
     category: "Pantalones",
     sizes: ["30W/32L", "32W/32L", "34W/34L"],
+    stock: 18,
     rating: 4.2,
     reviews: 85,
     material: "98% Algodón, 2% Elastano",
@@ -72,7 +75,8 @@ const products = [
       "Añade un toque de color con esta suave bufanda amarilla mostaza. Ligera y versátil.",
     category: "Accesorios",
     sizes: ["Talla Única"],
-    rating: 4.8,
+    stock: 30,
+    rating: 4.9,
     reviews: 210,
     material: "100% Acrílico Suave",
     care: "Lavar a mano con agua fría, secar al aire.",
@@ -88,6 +92,7 @@ const products = [
     description:
       "Elegante vestido a rayas en teal y blanco. Perfecto para salidas de verano.",
     sizes: ["XS", "S", "M"],
+    stock: 12,
     rating: 4.6,
     reviews: 95,
     material: "Mezcla de Rayón y Lino",
@@ -103,6 +108,7 @@ const products = [
     description: "Camiseta esencial de cuello redondo en gris jaspeado.",
     category: "Camisas",
     sizes: ["S", "M", "L", "XL"],
+    stock: 35,
     rating: 4.3,
     reviews: 150,
     material: "60% Algodón, 40% Poliéster",
@@ -117,6 +123,7 @@ const products = [
     description: "Jeans de corte recto con un lavado oscuro clásico.",
     category: "Pantalones",
     sizes: ["32W/30L", "32W/32L", "34W/32L"],
+    stock: 22,
     rating: 4.4,
     reviews: 90,
     material: "100% Algodón",
@@ -132,6 +139,7 @@ const products = [
     description: "Vestido ligero con estampado floral, ideal para primavera.",
     category: "Vestidos",
     sizes: ["S", "M", "L"],
+    stock: 8,
     rating: 4.7,
     reviews: 110,
     material: "100% Viscosa",
@@ -147,6 +155,7 @@ const products = [
     description: "Gorro de punto cálido en color teal.",
     category: "Accesorios",
     sizes: ["Talla Única"],
+    stock: 30,
     rating: 4.9,
     reviews: 180,
     material: "100% Lana Merino",
@@ -162,6 +171,7 @@ const products = [
     description: "Camisa de franela suave y cálida con patrón a cuadros.",
     category: "Camisas",
     sizes: ["M", "L", "XL"],
+    stock: 15,
     rating: 4.5,
     reviews: 135,
     material: "100% Algodón Cepillado",
@@ -177,6 +187,7 @@ const products = [
     description: "Pantalones cargo prácticos y resistentes en color beige.",
     category: "Pantalones",
     sizes: ["M", "L", "XL"],
+    stock: 28,
     rating: 4.1,
     reviews: 75,
     material: "100% Algodón Ripstop",
@@ -193,6 +204,7 @@ const products = [
       "Zapatillas blancas versátiles, ideales para cualquier ocasión.",
     category: "Zapatos",
     sizes: ["40", "41", "42", "43", "44"],
+    stock: 14,
     rating: 4.7,
     reviews: 150,
     material: "Cuero Sintético y Malla",
@@ -207,6 +219,7 @@ const products = [
     description: "Botines elegantes de cuero negro con cierre lateral.",
     category: "Zapatos",
     sizes: ["39", "40", "41", "42"],
+    stock: 18,
     rating: 4.6,
     reviews: 110,
     material: "100% Cuero",
@@ -221,6 +234,7 @@ const products = [
     description: "Pack de 3 bodies de algodón suave para bebé.",
     category: "Ropa de Bebé",
     sizes: ["0-3m", "3-6m", "6-9m"],
+    stock: 50,
     rating: 4.9,
     reviews: 250,
     material: "100% Algodón",
@@ -235,6 +249,7 @@ const products = [
     description: "Pijama cómodo con estampado divertido para bebé.",
     category: "Ropa de Bebé",
     sizes: ["6-9m", "9-12m", "12-18m"],
+    stock: 38,
     rating: 4.8,
     reviews: 190,
     material: "100% Algodón Orgánico",
@@ -250,6 +265,7 @@ const products = [
     description: "Sudadera clásica con capucha en gris jaspeado.",
     category: "Sudaderas",
     sizes: ["S", "M", "L", "XL"],
+    stock: 20,
     rating: 4.5,
     reviews: 140,
     material: "80% Algodón, 20% Poliéster",
@@ -264,6 +280,7 @@ const products = [
     description: "Sudadera básica de cuello redondo en azul marino.",
     category: "Sudaderas",
     sizes: ["S", "M", "L"],
+    stock: 16,
     rating: 4.4,
     reviews: 125,
     material: "70% Algodón, 30% Poliéster",
@@ -279,6 +296,7 @@ const products = [
     description: "Camiseta divertida con estampado de dinosaurio para niño.",
     category: "Ropa Infantil",
     sizes: ["2A", "3A", "4A", "5A"],
+    stock: 32,
     rating: 4.7,
     reviews: 95,
     material: "100% Algodón",
@@ -294,6 +312,7 @@ const products = [
     description: "Pantalón corto cómodo y resistente para niño.",
     category: "Ropa Infantil",
     sizes: ["4A", "5A", "6A"],
+    stock: 24,
     rating: 4.6,
     reviews: 80,
     material: "100% Algodón",
@@ -308,6 +327,7 @@ const products = [
     description: "Vestido ligero y fresco con estampado floral para niña.",
     category: "Ropa Infantil",
     sizes: ["4A", "5A", "6A", "7A"],
+    stock: 18,
     rating: 4.8,
     reviews: 115,
     material: "100% Viscosa",
@@ -323,6 +343,7 @@ const products = [
     description: "Leggings cómodos y elásticos a rayas para niña.",
     category: "Ropa Infantil",
     sizes: ["5A", "6A", "7A", "8A"],
+    stock: 26,
     rating: 4.7,
     reviews: 100,
     material: "95% Algodón, 5% Elastano",
@@ -334,12 +355,13 @@ const products = [
 export default function ProductDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { toast } = useToast();
   const { addToCart } = useCart(); // Get addToCart from context
   const router = useRouter(); // Use router for back navigation
-  const product = products.find((p) => p.id === params.id);
+  const resolvedParams = use(params);
+  const product = products.find((p) => p.id === resolvedParams.id);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     undefined,
   );
@@ -442,9 +464,17 @@ export default function ProductDetailPage({
                 ({product.reviews ?? 0} reseñas)
               </span>
             </div>
-            <p className="text-3xl font-semibold mb-4 text-primary">
+            <p className="text-3xl font-semibold mb-2 text-primary">
               ${product.price.toFixed(2)} MXN
             </p>
+            <div className="flex items-center mb-4 space-x-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                Stock disponible:
+              </span>
+              <span className={`text-sm font-semibold ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
+              </span>
+            </div>
             <Card className="bg-secondary/50 border-none shadow-none">
               <CardContent className="p-4 text-foreground/80">
                 <p>{product.description}</p>

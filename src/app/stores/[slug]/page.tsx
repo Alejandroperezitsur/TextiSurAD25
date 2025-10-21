@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ShoppingBag, Clock, MapPin, Truck } from "lucide-react";
+import { ShoppingBag, Clock, MapPin, Truck, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import type { CartItem } from "@/types/cart";
@@ -24,6 +24,7 @@ import { registeredStores, allProducts } from "../../page";
 
 export default function StorePage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params?.slug as string;
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -194,7 +195,11 @@ export default function StorePage() {
       {storeProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {storeProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
+            <Card
+              key={product.id}
+              className="overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg cursor-pointer"
+              onClick={() => router.push(`/products/${typeof product.id === 'number' ? product.id : parseInt(product.id, 10)}`)}
+            >
               <div className="relative aspect-square overflow-hidden">
                 {isOwner && (
                   <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -213,12 +218,25 @@ export default function StorePage() {
                 <CardDescription className="line-clamp-2 mt-1">
                   {product.category}
                 </CardDescription>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <span className="font-medium">Tallas:</span> {product.sizes?.join(", ")}
+                </div>
+                <div className="mt-2 flex items-center gap-3 text-sm">
+                  <span className="flex items-center text-yellow-500">
+                    <Star className="h-4 w-4 mr-1" />
+                    {(product.rating ?? 4.5).toFixed(1)}
+                  </span>
+                  <span className="flex items-center text-muted-foreground">
+                    <Truck className="h-4 w-4 mr-1" />
+                    {product.hasDelivery ? "Envío a domicilio" : "Sin envío"}
+                  </span>
+                </div>
                 <div className="mt-4 flex items-center justify-between">
                   <div className="font-bold text-lg text-primary">
                     ${product.price.toFixed(2)}
                   </div>
                   <Button
-                    onClick={() => handleAddToCart(product)}
+                    onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}
                     className="rounded-full bg-primary hover:bg-primary/90"
                     size="sm"
                   >
@@ -227,7 +245,7 @@ export default function StorePage() {
                   </Button>
                   {isOwner && (
                     <Button asChild variant="outline" size="sm" className="ml-2">
-                      <Link href={`/dashboard/vendedor/products/${typeof product.id === 'number' ? product.id : parseInt(product.id, 10)}/edit`}>Editar</Link>
+                      <Link href={`/dashboard/vendedor/products/${typeof product.id === 'number' ? product.id : parseInt(product.id, 10)}/edit`} onClick={(e) => e.stopPropagation()}>Editar</Link>
                     </Button>
                   )}
                 </div>

@@ -81,6 +81,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               >
                 Productos
               </Link>
+              <Link
+                href="/#tiendas"
+                className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5"
+              >
+                Tiendas
+              </Link>
               {/* Mostrar Mis Pedidos solo si el usuario es comprador */}
               {user?.role === "comprador" && (
                 <Link

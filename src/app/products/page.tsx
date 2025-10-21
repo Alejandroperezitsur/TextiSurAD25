@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingBag, SlidersHorizontal, X } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal, X, Star, Truck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
@@ -324,6 +324,8 @@ const allProducts = allProductsFull.map((p) => ({
   category: p.category,
   size: p.sizes[0] || "Talla Única", // Display primary size
   hint: p.hint,
+  rating: p.rating ?? 4.5,
+  hasDelivery: true,
 }));
 
 const categories = [
@@ -408,6 +410,8 @@ export default function ProductsPage() {
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   useEffect(() => {
+    if (!searchParams) return;
+    
     const currentSearch = searchParams.get("search") || "";
     const currentCategoryParam = searchParams.get("category");
     const currentSize = searchParams.get("size") || "Todas";
@@ -419,7 +423,7 @@ export default function ProductsPage() {
     setSelectedSize(currentSize);
     setMinPrice(currentMinPrice);
     setMaxPrice(currentMaxPrice);
-  }, [searchParams.toString()]); // Depend on searchParams.toString()
+  }, [searchParams?.toString()]); // Depend on searchParams.toString()
 
   useEffect(() => {
     setHasActiveFilters(
@@ -491,7 +495,7 @@ export default function ProductsPage() {
   };
 
   const updateUrlFilters = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString()); // Preserve existing params
+    const params = new URLSearchParams(searchParams?.toString() || ""); // Preserve existing params
     if (searchTerm) params.set("search", searchTerm);
     else params.delete("search");
 
@@ -666,7 +670,8 @@ export default function ProductsPage() {
             {filteredProducts.map((product) => (
               <Card
                 key={product.id}
-                className="overflow-hidden group border flex flex-col"
+                className="overflow-hidden group border flex flex-col cursor-pointer"
+                onClick={() => router.push(`/products/${product.id}`)}
               >
                 <CardHeader className="p-0 relative">
                   <Link
@@ -700,6 +705,19 @@ export default function ProductsPage() {
                   <CardDescription className="text-sm text-muted-foreground">
                     {product.category}
                   </CardDescription>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <span className="font-medium">Tallas:</span> {allProductsFull.find(p => p.id === product.id.toString())?.sizes.join(", ") || "N/A"}
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-sm">
+                    <span className="flex items-center text-yellow-500">
+                      <Star className="h-4 w-4 mr-1" />
+                      {product.rating.toFixed(1)}
+                    </span>
+                    <span className="flex items-center text-muted-foreground">
+                      <Truck className="h-4 w-4 mr-1" />
+                      {product.hasDelivery ? "Envío a domicilio" : "Sin envío"}
+                    </span>
+                  </div>
                   <p className="text-lg font-bold mt-2">
                     ${product.price.toFixed(2)} MXN
                   </p>
@@ -707,7 +725,7 @@ export default function ProductsPage() {
                 <CardFooter className="p-4 pt-0">
                   <Button
                     className="w-full btn-accent"
-                    onClick={() => handleAddToCart(product)}
+                    onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}
                   >
                     <ShoppingBag className="mr-2 h-4 w-4" /> Añadir al Carrito
                   </Button>

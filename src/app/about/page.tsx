@@ -58,8 +58,8 @@ export default function AboutPage() {
           <Image
             src="https://periodicocorreo.com.mx/__export/sites/correo/img/2021/10/14/middle-plaza2-157234860.jpg"
             alt="Taller textil con artesanos trabajando"
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{ objectFit: "cover" }}
             data-ai-hint="textile workshop"
           />
         </div>
