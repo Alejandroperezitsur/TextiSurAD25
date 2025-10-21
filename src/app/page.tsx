@@ -307,6 +307,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/artisanstore/600/400",
     slug: "artesanias-elena",
     dataAiHint: "artisan crafts",
+    categories: ["Accesorios", "Vestidos"],
   },
   {
     id: "store2",
@@ -316,6 +317,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/urbanfashionstore/600/400",
     slug: "moda-urbana-perez",
     dataAiHint: "city fashion",
+    categories: ["Camisas", "Moda urbana"],
   },
   {
     id: "store3",
@@ -325,6 +327,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/boutiquestore/600/400",
     slug: "boutique-sol-naciente",
     dataAiHint: "fashion boutique",
+    categories: ["Vestidos", "Camisas"],
   },
   {
     id: "store4",
@@ -334,6 +337,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/yarnstore/600/400",
     slug: "hilos-del-sur",
     dataAiHint: "yarn shop",
+    categories: ["Lanas y tejido"],
   },
   {
     id: "store5",
@@ -343,6 +347,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/kidsstore/600/400",
     slug: "rincon-infantil",
     dataAiHint: "kids clothing",
+    categories: ["Ropa de niño", "Ropa de bebé"],
   },
   {
     id: "store6",
@@ -352,6 +357,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/womenstore/600/400",
     slug: "el-vestidor-de-ana",
     dataAiHint: "womens fashion",
+    categories: ["Vestidos", "Camisas"],
   },
   {
     id: "store7",
@@ -361,6 +367,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/shoestore/600/400",
     slug: "calzados-el-caminante",
     dataAiHint: "shoe store",
+    categories: ["Calzado"],
   },
   {
     id: "store8",
@@ -370,6 +377,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/accessoriesstore/600/400",
     slug: "accesorios-luna-magica",
     dataAiHint: "fashion accessories",
+    categories: ["Accesorios"],
   },
   {
     id: "store9",
@@ -379,6 +387,7 @@ export const registeredStores = [
     imageUrl: "https://picsum.photos/seed/sportstore/600/400",
     slug: "deportes-extremos-sur",
     dataAiHint: "sports gear",
+    categories: ["Deportes"],
   },
 ];
 
@@ -721,9 +730,9 @@ export default function HomePage() {
               <StoreIcon className="mr-3 h-8 w-8 text-primary" /> Tiendas
               Destacadas
             </h2>
-            {/* This link might go to a future dedicated stores page */}
+            {/* Enlace a la página de tiendas */}
             <Button asChild variant="outline">
-              <Link href="/products">Ver Todas las Tiendas</Link>
+              <Link href="/stores">Ver Todas las Tiendas</Link>
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
