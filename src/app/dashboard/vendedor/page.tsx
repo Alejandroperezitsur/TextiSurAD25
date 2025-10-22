@@ -118,6 +118,8 @@ export default function SellerDashboardPage() {
     router.back();
   };
 
+
+
   if (!user) {
     return <p>Cargando...</p>;
   }
@@ -234,6 +236,8 @@ export default function SellerDashboardPage() {
           ))}
         </div>
       )}
+
+
     </div>
   );
 }

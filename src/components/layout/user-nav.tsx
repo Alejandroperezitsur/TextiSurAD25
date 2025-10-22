@@ -80,12 +80,20 @@ export function UserNav({ user, onLogout }: UserNavProps) {
         </DropdownMenuItem>
         {/* Conditionally render based on role */}
         {user.role === "vendedor" ? (
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/vendedor">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Mis Publicaciones</span>
-            </Link>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/vendedor">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Mis Publicaciones</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/orders/history">
+                <ListOrdered className="mr-2 h-4 w-4" />
+                <span>Mis Pedidos</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
         ) : (
           // Link to buyer order history
           <DropdownMenuItem asChild>

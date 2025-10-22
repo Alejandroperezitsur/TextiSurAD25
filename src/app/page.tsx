@@ -551,15 +551,20 @@ export default function HomePage() {
                   Explorar Productos
                 </Button>
               </Link>
-              <Link href="/register">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300 hover:shadow-lg"
-                >
-                  Vende Tus Artículos
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300 hover:shadow-lg"
+                onClick={() => {
+                  if (user) {
+                    router.push('/dashboard/vendedor');
+                  } else {
+                    router.push('/login');
+                  }
+                }}
+              >
+                Vende Tus Artículos
+              </Button>
             </div>
           </div>
         </div>
