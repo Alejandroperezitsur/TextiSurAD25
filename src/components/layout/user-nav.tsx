@@ -19,7 +19,8 @@ import {
   User as UserIcon,
   ListOrdered,
   LayoutDashboard,
-} from "lucide-react"; // Added icons
+  Heart,
+} from "lucide-react"; // Added icons including Heart for favorites
 
 interface UserNavProps {
   user: User;
@@ -93,15 +94,29 @@ export function UserNav({ user, onLogout }: UserNavProps) {
                 <span>Mis Pedidos</span>
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/favorites">
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Favoritos</span>
+              </Link>
+            </DropdownMenuItem>
           </>
         ) : (
           // Link to buyer order history
-          <DropdownMenuItem asChild>
-            <Link href="/orders/history">
-              <ListOrdered className="mr-2 h-4 w-4" />
-              <span>Mis Pedidos</span>
-            </Link>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/orders/history">
+                <ListOrdered className="mr-2 h-4 w-4" />
+                <span>Mis Pedidos</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/favorites">
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Favoritos</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem

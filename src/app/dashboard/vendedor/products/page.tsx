@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 // Datos de ejemplo para productos
 const mockProducts = [
@@ -82,6 +83,17 @@ export default function ProductsManagementPage() {
         {products.map((product) => (
           <Card key={product.id}>
             <div className="relative h-48 w-full">
+              <div className="absolute top-2 left-2 z-10">
+                <FavoriteButton
+                  item={{
+                    id: String(product.id),
+                    name: product.name,
+                    imageUrl: product.imageUrl,
+                    price: product.price,
+                    category: "Mis Productos",
+                  }}
+                />
+              </div>
               <Image
                 src={product.imageUrl}
                 alt={product.name}

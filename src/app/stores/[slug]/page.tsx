@@ -17,6 +17,7 @@ import { ShoppingBag, Clock, MapPin, Truck, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import type { CartItem } from "@/types/cart";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 // Importamos los datos de tiendas y productos desde la página principal
 // En una aplicación real, estos datos vendrían de una API
@@ -201,11 +202,32 @@ export default function StorePage() {
               onClick={() => router.push(`/products/${typeof product.id === 'number' ? product.id : parseInt(product.id, 10)}`)}
             >
               <div className="relative aspect-square overflow-hidden">
+                {/* Favorites overlay */}
+                <div className="absolute top-2 left-2 z-10">
+                  {/** @ts-ignore */}
+                  <FavoriteButton
+                    item={{
+                      id: String(product.id),
+                      name: product.name,
+                      imageUrl: product.imageUrl,
+                      price: product.price,
+                      category: product.category,
+                    }}
+                  />
+                </div>
                 {isOwner && (
-                  <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  <div className="absolute top-12 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                     Tu producto
                   </div>
                 )}
+                {/* Overlay size or multiple sizes indicator */}
+                <div className="absolute top-2 right-2 bg-background/80 text-foreground px-2 py-1 rounded text-xs font-medium shadow z-10">
+                  {Array.isArray(product.sizes)
+                    ? product.sizes.length > 1
+                      ? "Múltiples tallas"
+                      : product.sizes[0] || "N/A"
+                    : "N/A"}
+                </div>
                 <Image
                   src={product.imageUrl}
                   alt={product.name}

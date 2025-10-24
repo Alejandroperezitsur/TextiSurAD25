@@ -15,6 +15,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 // Datos por defecto de productos del vendedor
 const defaultSellerProducts = [
@@ -192,10 +193,21 @@ export default function SellerDashboardPage() {
                     data-ai-hint={product.hint}
                   />
                 </Link>
-                <div
-                  className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium shadow ${product.status === "Activo" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"}`}
-                >
-                  {product.status}
+                <div className="absolute top-2 left-2 flex flex-col gap-2">
+                  <FavoriteButton
+                    item={{
+                      id: String(product.id),
+                      name: product.name,
+                      imageUrl: product.imageUrl,
+                      price: product.price,
+                      category: "Mis Publicaciones",
+                    }}
+                  />
+                  <div
+                    className={`px-2 py-1 rounded text-xs font-medium shadow ${product.status === "Activo" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"}`}
+                  >
+                    {product.status}
+                  </div>
                 </div>
                 {product.stock === 0 && product.status === "Activo" && (
                   <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium shadow bg-yellow-100 text-yellow-800 border border-yellow-200">

@@ -27,6 +27,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import type { CartItem } from "@/types/cart";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 // Updated product data with real product information
 const allProductsFull = [
@@ -687,6 +688,20 @@ export default function ProductsPage() {
                       data-ai-hint={product.hint}
                     />
                   </Link>
+                  {/* Favorites overlay */}
+                  <div className="absolute top-2 left-2">
+                    {/* Pass minimal product snapshot for favorites */}
+                    {/** @ts-ignore */}
+                    <FavoriteButton
+                      item={{
+                        id: String(product.id),
+                        name: product.name,
+                        imageUrl: product.imageUrl,
+                        price: product.price,
+                        category: product.category,
+                      }}
+                    />
+                  </div>
                   {/* Display primary size or indication of multiple sizes if not filtering by a specific one */}
                   <div className="absolute top-2 right-2 bg-background/80 text-foreground px-2 py-1 rounded text-xs font-medium shadow">
                     {selectedSize !== "Todas" && product.size === selectedSize

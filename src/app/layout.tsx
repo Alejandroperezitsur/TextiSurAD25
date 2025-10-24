@@ -16,6 +16,7 @@ import { useState, type FormEvent } from "react"; // Import useState and FormEve
 import { useRouter } from "next/navigation"; // Import useRouter
 import { Badge } from "@/components/ui/badge"; // Import Badge
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+import { FavoritesProvider } from "@/context/FavoritesContext";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -218,7 +219,9 @@ export default function MainLayout({
       >
         <AuthProvider>
           <CartProvider>
-            <LayoutContent>{children}</LayoutContent>
+            <FavoritesProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
       </body>

@@ -43,6 +43,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { useRef, useState, useEffect, cloneElement } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 // Use a subset of the new product list for featured products
 const featuredProductsFull = [
@@ -660,11 +661,36 @@ export default function HomePage() {
                 className="cursor-pointer overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg"
               >
                 <div className="relative aspect-square overflow-hidden">
-                  {ownerStoreId && product.storeId === ownerStoreId && (
-                    <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      Tu producto
-                    </div>
-                  )}
+                  <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
+                    {ownerStoreId && product.storeId === ownerStoreId && (
+                      <div className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        Tu producto
+                      </div>
+                    )}
+                    {/** @ts-ignore */}
+                    <FavoriteButton
+                      item={{
+                        id: String(product.id),
+                        name: product.name,
+                        imageUrl: product.imageUrl,
+                        price: product.price,
+                        category: product.category,
+                      }}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const slug = registeredStores.find((s) => s.id === product.storeId)?.slug;
+                        if (slug) {
+                          router.push(`/stores/${slug}`);
+                        }
+                      }}
+                    >
+                      Ver tienda
+                    </Button>
+                  </div>
                   <div className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
                     Destacado
                   </div>
@@ -805,11 +831,36 @@ export default function HomePage() {
                 {filteredProducts.map((product) => (
                   <Card key={product.id} onClick={() => router.push(`/products/${product.id}`)} className="cursor-pointer overflow-hidden group border border-border/50 hover:border-accent/50 transition-all hover:shadow-lg">
                     <div className="relative aspect-square overflow-hidden">
-                      {ownerStoreId && product.storeId === ownerStoreId && (
-                        <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                          Tu producto
-                        </div>
-                      )}
+                      <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
+                        {ownerStoreId && product.storeId === ownerStoreId && (
+                          <div className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            Tu producto
+                          </div>
+                        )}
+                        {/** @ts-ignore */}
+                        <FavoriteButton
+                          item={{
+                            id: String(product.id),
+                            name: product.name,
+                            imageUrl: product.imageUrl,
+                            price: product.price,
+                            category: product.category,
+                          }}
+                        />
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const slug = registeredStores.find((s) => s.id === product.storeId)?.slug;
+                            if (slug) {
+                              router.push(`/stores/${slug}`);
+                            }
+                          }}
+                        >
+                          Ver tienda
+                        </Button>
+                      </div>
                       <Image
                         src={product.imageUrl}
                         alt={product.name}

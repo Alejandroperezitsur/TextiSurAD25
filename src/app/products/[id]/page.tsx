@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/accordion";
 import { useCart } from "@/context/CartContext"; // Import useCart
 import type { CartItem } from "@/types/cart"; // Import CartItem type
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 // Updated product data with real product information
 const products = [
@@ -432,7 +433,20 @@ export default function ProductDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {/* Product Image */}
         <div>
-          <Card className="overflow-hidden border sticky top-20">
+          <Card className="overflow-hidden border sticky top-20 relative">
+            {/* Favorites overlay near image */}
+            <div className="absolute top-2 left-2 z-10">
+              {/** @ts-ignore */}
+              <FavoriteButton
+                item={{
+                  id: String(product.id),
+                  name: product.name,
+                  imageUrl: product.imageUrl,
+                  price: product.price,
+                  category: product.category,
+                }}
+              />
+            </div>
             <Image
               src={product.imageUrl}
               alt={`Imagen de ${product.name}`}
