@@ -20,15 +20,19 @@ import {
   ListOrdered,
   LayoutDashboard,
   Heart,
-} from "lucide-react"; // Added icons including Heart for favorites
+  Bell,
+} from "lucide-react"; // Added icons including Heart for favorites and Bell for notifications
 
 interface UserNavProps {
   user: User;
   onLogout: () => void; // Prop to handle logout logic
 }
 
+import { useNotifications } from "@/context/NotificationsContext";
+
 export function UserNav({ user, onLogout }: UserNavProps) {
   const { toast } = useToast();
+  const { unreadCountForCurrentUser } = useNotifications();
 
   const handleLogoutClick = () => {
     onLogout(); // Call the passed logout handler from AuthContext via Layout
@@ -98,6 +102,12 @@ export function UserNav({ user, onLogout }: UserNavProps) {
               <Link href="/favorites">
                 <Heart className="mr-2 h-4 w-4" />
                 <span>Favoritos</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/notifications">
+                <Bell className="mr-2 h-4 w-4" />
+                <span>Notificaciones{unreadCountForCurrentUser > 0 ? ` (${unreadCountForCurrentUser})` : ""}</span>
               </Link>
             </DropdownMenuItem>
           </>

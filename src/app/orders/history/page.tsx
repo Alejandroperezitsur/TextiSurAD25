@@ -99,6 +99,15 @@ export default function OrderHistoryPage() {
     }
   }, [router]);
 
+  // Persistir pedidos de ejemplo en localStorage para elegibilidad de calificaciones
+  useEffect(() => {
+    if (user) {
+      try {
+        localStorage.setItem("orders_history", JSON.stringify(mockOrders));
+      } catch {}
+    }
+  }, [user]);
+
   if (!user) {
     return <div>Cargando...</div>;
   }

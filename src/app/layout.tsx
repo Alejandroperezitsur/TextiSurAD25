@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation"; // Import useRouter
 import { Badge } from "@/components/ui/badge"; // Import Badge
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 import { FavoritesProvider } from "@/context/FavoritesContext";
+import { NotificationsProvider } from "@/context/NotificationsContext";
+import { RatingsProvider } from "@/context/RatingsContext";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -219,9 +221,13 @@ export default function MainLayout({
       >
         <AuthProvider>
           <CartProvider>
-            <FavoritesProvider>
-              <LayoutContent>{children}</LayoutContent>
-            </FavoritesProvider>
+            <NotificationsProvider>
+              <RatingsProvider>
+                <FavoritesProvider>
+                  <LayoutContent>{children}</LayoutContent>
+                </FavoritesProvider>
+              </RatingsProvider>
+            </NotificationsProvider>
           </CartProvider>
         </AuthProvider>
       </body>
