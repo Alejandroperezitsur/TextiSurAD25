@@ -160,7 +160,10 @@ export default function ProductsPage() {
             id: Number(p.id),
             name: String(p.name),
             price: Number(p.price),
-            imageUrl: p.imageUrl,
+            imageUrl: (() => {
+              const raw = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/,"") : "";
+              return raw || `https://picsum.photos/seed/product-${p.id}/600/600`;
+            })(),
             category: p.category,
             sizes: (() => {
               try {

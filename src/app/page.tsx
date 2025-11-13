@@ -478,7 +478,10 @@ export default function HomePage() {
               id: Number(p.id),
               name: p.name,
               price: Number(p.price),
-              imageUrl: p.imageUrl || `https://picsum.photos/seed/product-${p.id}/400/500`,
+              imageUrl: (() => {
+                const raw = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/,"") : "";
+                return raw || `https://picsum.photos/seed/product-${p.id}/400/500`;
+              })(),
               category: p.category,
               sizes: (() => {
                 try {

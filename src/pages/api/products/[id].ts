@@ -2,12 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import sequelize from "@/lib/sequelize";
 import Product from "@/models/Product";
 import emitter from "@/lib/events";
+import fs from "fs";
+import path from "path";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  await sequelize.sync({ alter: true });
 
   const { id } = req.query as { id?: string };
   const pid = Number(id);
@@ -30,6 +31,8 @@ export default async function handler(
       if (!product) return res.status(404).json({ message: "Producto no encontrado" });
 
       const data = req.body as Record<string, unknown>;
+      const prevImg = typeof product.imageUrl === "string" ? product.imageUrl : "";
+      const newImageUrl = typeof (data as any).imageUrl === "string" ? String((data as any).imageUrl).trim().replace(/\)$/,"") : undefined;
       const sizesArray = (() => {
         const s = (data as any).sizes;
         if (Array.isArray(s)) return s.map((x) => String(x));
@@ -51,7 +54,7 @@ export default async function handler(
         name: typeof data.name === "string" ? data.name : product.name,
         description: typeof data.description === "string" ? data.description : product.description,
         price: typeof data.price === "number" ? data.price : product.price,
-        imageUrl: typeof data.imageUrl === "string" ? data.imageUrl : product.imageUrl,
+        imageUrl: typeof newImageUrl === "string" ? newImageUrl : product.imageUrl,
         stock: typeof data.stock === "number" ? data.stock : product.stock,
         status: data.status === "Inactivo" || data.status === "Activo" ? (data.status as "Activo" | "Inactivo") : product.status,
         category: typeof data.category === "string" ? data.category : product.category,
@@ -60,6 +63,22 @@ export default async function handler(
         hasDelivery: typeof data.hasDelivery === "boolean" ? data.hasDelivery : product.hasDelivery,
         rating: typeof data.rating === "number" ? data.rating : product.rating,
       });
+
+      if (newImageUrl && prevImg && prevImg !== newImageUrl) {
+        let rel = "";
+        if (prevImg.startsWith("/uploads/")) {
+          rel = prevImg;
+        } else {
+          try {
+            const u = new URL(prevImg);
+            if (u.pathname.startsWith("/uploads/")) rel = u.pathname;
+          } catch {}
+        }
+        if (rel) {
+          const filePath = path.join(process.cwd(), "public", rel.replace(/^\/+/, ""));
+          try { await fs.promises.unlink(filePath); } catch {}
+        }
+      }
 
       emitter.emit("products:update", { type: "update", product: updated });
       return res.status(200).json({ product: updated });
@@ -73,6 +92,20 @@ export default async function handler(
     try {
       const product = await Product.findByPk(pid);
       if (!product) return res.status(404).json({ message: "Producto no encontrado" });
+      const img = typeof product.imageUrl === "string" ? product.imageUrl : "";
+      let rel = "";
+      if (img.startsWith("/uploads/")) {
+        rel = img;
+      } else {
+        try {
+          const u = new URL(img);
+          if (u.pathname.startsWith("/uploads/")) rel = u.pathname;
+        } catch {}
+      }
+      if (rel) {
+        const filePath = path.join(process.cwd(), "public", rel.replace(/^\/+/, ""));
+        try { await fs.promises.unlink(filePath); } catch {}
+      }
       await product.destroy();
       emitter.emit("products:update", { type: "delete", id: pid });
       return res.status(204).end();

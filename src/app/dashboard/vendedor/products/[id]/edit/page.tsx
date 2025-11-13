@@ -1,210 +1,195 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter, useParams } from "next/navigation";
-
-interface SellerProduct {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl: string;
-  stock: number;
-  status: "Activo" | "Inactivo";
-  category?: string;
-  sizes?: string[];
-}
+import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
+import { AlertCircle, Upload } from "lucide-react";
 
 export default function EditProductPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const productId = Number((params as any)?.id);
+  const pid = Number(params?.id);
 
-  const [loading, setLoading] = useState(true);
-  const [product, setProduct] = useState<SellerProduct | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    price: "",
+    description: "",
+    stock: "",
+    status: "Activo",
+  });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Autenticación básica de vendedor
-    const token = localStorage.getItem("token");
-    const userRaw = localStorage.getItem("user");
-    if (!token || !userRaw) {
-      router.replace("/login");
+    if (!user || user.role !== "vendedor") {
+      router.push("/");
       return;
     }
-    try {
-      const user = JSON.parse(userRaw);
-      if (user?.role !== "vendedor") {
-        router.replace("/");
-        return;
-      }
-    } catch {
-      router.replace("/login");
-      return;
-    }
-
     const fetchProduct = async () => {
       try {
-        const resp = await fetch(`/api/products/${productId}`);
+        const resp = await fetch(`/api/products/${pid}`);
         if (resp.ok) {
           const data = await resp.json();
           const p = data.product;
-          setProduct({
-            id: Number(p.id),
-            name: p.name,
-            price: Number(p.price),
-            imageUrl: p.imageUrl || "",
-            stock: Number(p.stock),
-            status: (p.status === "Inactivo" ? "Inactivo" : "Activo") as any,
-            category: p.category || "",
-            sizes: p.sizes ? JSON.parse(p.sizes) : [],
+          setFormData({
+            name: String(p.name || ""),
+            price: String(p.price ?? ""),
+            description: String(p.description || ""),
+            stock: String(p.stock ?? ""),
+            status: String(p.status || "Activo"),
           });
-        } else {
-          setProduct({ id: productId, name: `Producto ${productId}`, price: 0, imageUrl: "", stock: 0, status: "Activo", sizes: [] });
+          const img = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/, "") : "";
+          setImagePreview(img || null);
         }
-      } catch {
-        setProduct({ id: productId, name: `Producto ${productId}`, price: 0, imageUrl: "", stock: 0, status: "Activo", sizes: [] });
-      }
+      } catch {}
     };
-    fetchProduct();
+    if (pid) fetchProduct();
+  }, [user, router, pid]);
 
-    setLoading(false);
-  }, [productId, router]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!product) return;
-    try {
-      const payload: any = {
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        stock: product.stock,
-        status: product.status,
-        category: product.category,
-        sizes: product.sizes,
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({ ...prev, image: "Por favor, selecciona un archivo de imagen." }));
+        setImagePreview(null);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, image: "La imagen es demasiado grande (máx 5MB)." }));
+        setImagePreview(null);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        setErrors((prev) => ({ ...prev, image: "" }));
       };
-      const resp = await fetch(`/api/products/${product.id}`, {
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      let uploadedUrl: string | undefined;
+      if (imagePreview && imagePreview.startsWith("data:image/")) {
+        const up = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataUrl: imagePreview }),
+        });
+        if (up.ok) {
+          const j = await up.json();
+          uploadedUrl = String(j.url);
+        } else {
+          const err = await up.json().catch(() => null);
+          setErrors((prev) => ({ ...prev, image: err?.message || "No se pudo subir la imagen" }));
+          return;
+        }
+      }
+
+      const payload: Record<string, any> = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        stock: parseInt(formData.stock || "0", 10),
+        status: formData.status === "Inactivo" ? "Inactivo" : "Activo",
+      };
+      if (uploadedUrl) payload.imageUrl = uploadedUrl;
+
+      const resp = await fetch(`/api/products/${pid}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (resp.ok) {
-        router.replace("/dashboard/vendedor/products");
-      } else {
-        alert("No se pudo guardar el producto.");
+        router.push("/dashboard/vendedor/products");
       }
-    } catch (err) {
-      console.error("Error guardando producto:", err);
-      alert("No se pudo guardar el producto.");
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (loading || !product) {
-    return (
-      <div className="container mx-auto flex-1 py-12 px-4 md:px-6">Cargando...</div>
-    );
+  if (!user || user.role !== "vendedor") {
+    return null;
   }
 
   return (
-    <div className="container mx-auto flex-1 py-12 px-4 md:px-6">
-      <Card className="max-w-3xl mx-auto">
+    <div className="container mx-auto py-8">
+      <Button variant="outline" onClick={() => router.push("/dashboard/vendedor/products")} className="mb-6">
+        Volver a Productos
+      </Button>
+
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Editar Producto</CardTitle>
-          <CardDescription>Modifica la información de tu producto.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre</Label>
-              <Input
-                id="name"
-                value={product.name}
-                onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                required
-              />
+              <Label htmlFor="name">Nombre del producto</Label>
+              <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Precio (MXN)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={product.price}
-                  onChange={(e) => setProduct({ ...product, price: parseFloat(e.target.value || "0") })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  value={product.stock}
-                  onChange={(e) => setProduct({ ...product, stock: parseInt(e.target.value || "0", 10) })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Estado</Label>
-                <select
-                  id="status"
-                  className="border rounded h-10 px-3"
-                  value={product.status}
-                  onChange={(e) => setProduct({ ...product, status: e.target.value as SellerProduct["status"] })}
-                >
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoría</Label>
-                <Input
-                  id="category"
-                  value={product.category || ""}
-                  onChange={(e) => setProduct({ ...product, category: e.target.value })}
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL de Imagen</Label>
-              <Input
-                id="imageUrl"
-                value={product.imageUrl}
-                onChange={(e) => setProduct({ ...product, imageUrl: e.target.value })}
-              />
-              <div className="text-xs text-muted-foreground">Usa una URL pública por ahora.</div>
+              <Label htmlFor="price">Precio</Label>
+              <Input id="price" name="price" type="number" step="0.01" min="0" value={formData.price} onChange={handleChange} required />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="sizes">Tallas (separadas por coma)</Label>
-              <Input
-                id="sizes"
-                value={(product.sizes || []).join(", ")}
-                onChange={(e) => setProduct({ ...product, sizes: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })}
-              />
+              <Label htmlFor="description">Descripción</Label>
+              <Textarea id="description" name="description" value={formData.description} onChange={handleChange} rows={4} required />
             </div>
-
-            <CardFooter className="flex justify-end gap-3 px-0">
-              <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
-              <Button type="submit" className="btn-accent">Guardar Cambios</Button>
-            </CardFooter>
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock disponible</Label>
+              <Input id="stock" name="stock" type="number" min="0" value={formData.stock} onChange={handleChange} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Input id="status" name="status" value={formData.status} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="image-upload">Imagen del Producto</Label>
+              <div className="flex flex-col sm:flex-row items-center gap-4 border rounded-md p-4">
+                <div className="flex-shrink-0 w-24 h-32 bg-secondary rounded-md flex items-center justify-center overflow-hidden border">
+                  {imagePreview ? (
+                    <Image src={imagePreview} alt="Vista previa" width={96} height={128} className="object-cover w-full h-full" />
+                  ) : (
+                    <div className="text-xs text-muted-foreground">Sin imagen</div>
+                  )}
+                </div>
+                <div className="flex-grow text-center sm:text-left space-y-2">
+                  <Input id="image-upload" type="file" accept="image/png, image/jpeg, image/webp" onChange={handleImageUpload} className="hidden" />
+                  <Button type="button" variant="outline" onClick={() => document.getElementById("image-upload")?.click()}>
+                    <Upload className="mr-2 h-4 w-4" /> {imagePreview ? "Cambiar Imagen" : "Cargar Imagen"}
+                  </Button>
+                  {errors.image && (
+                    <p className="text-xs text-destructive flex items-center justify-center sm:justify-start">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.image}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Guardando..." : "Guardar Cambios"}</Button>
           </form>
         </CardContent>
       </Card>
     </div>
   );
 }
+

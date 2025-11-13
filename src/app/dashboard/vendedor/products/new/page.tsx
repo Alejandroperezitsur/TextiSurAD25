@@ -2,13 +2,15 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import Image from "next/image";
+import { AlertCircle, Upload } from "lucide-react";
 
 export default function NewProductPage() {
   const { user } = useAuth();
@@ -19,8 +21,9 @@ export default function NewProductPage() {
     price: "",
     description: "",
     stock: "",
-    imageUrl: "",
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // Verificar que el usuario sea vendedor
@@ -45,13 +48,40 @@ export default function NewProductPage() {
     
     try {
       setIsLoading(true);
+      let uploadedUrl: string | undefined;
+      if (imagePreview) {
+        try {
+          const up = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dataUrl: imagePreview }),
+          });
+          if (up.ok) {
+            const j = await up.json();
+            uploadedUrl = String(j.url);
+          } else {
+            const err = await up.json().catch(() => null);
+            setErrors((prev) => ({ ...prev, image: err?.message || "No se pudo subir la imagen" }));
+            throw new Error("upload failed");
+          }
+        } catch (error) {
+          console.error("Upload error", error);
+          setErrors((prev) => ({ ...prev, image: "No se pudo subir la imagen" }));
+          throw error;
+        }
+      } else {
+        setErrors((prev) => ({ ...prev, image: "La imagen es obligatoria" }));
+        setIsLoading(false);
+        return;
+      }
+
       const payload = {
         userEmail: user?.email,
         name: formData.name,
         price: parseFloat(formData.price),
         description: formData.description,
         stock: parseInt(formData.stock || "0", 10),
-        imageUrl: formData.imageUrl,
+        imageUrl: uploadedUrl,
         status: "Activo",
       };
       const resp = await fetch("/api/products", {
@@ -74,6 +104,28 @@ export default function NewProductPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({ ...prev, image: "Por favor, selecciona un archivo de imagen." }));
+        setImagePreview(null);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, image: "La imagen es demasiado grande (máx 5MB)." }));
+        setImagePreview(null);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        setErrors((prev) => ({ ...prev, image: "" }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -148,16 +200,35 @@ export default function NewProductPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL de la imagen</Label>
-              <Input
-                id="imageUrl"
-                name="imageUrl"
-                type="url"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                required
-              />
+              <Label htmlFor="image-upload">Imagen del Producto *</Label>
+              <div className="flex flex-col sm:flex-row items-center gap-4 border rounded-md p-4">
+                <div className="flex-shrink-0 w-24 h-32 bg-secondary rounded-md flex items-center justify-center overflow-hidden border">
+                  {imagePreview ? (
+                    <Image
+                      src={imagePreview}
+                      alt="Vista previa"
+                      width={96}
+                      height={128}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="text-xs text-muted-foreground">Sin imagen</div>
+                  )}
+                </div>
+                <div className="flex-grow text-center sm:text-left space-y-2">
+                  <Input id="image-upload" type="file" accept="image/png, image/jpeg, image/webp" onChange={handleImageUpload} className="hidden" />
+                  <Button type="button" variant="outline" onClick={() => document.getElementById("image-upload")?.click()}>
+                    <Upload className="mr-2 h-4 w-4" /> {imagePreview ? "Cambiar Imagen" : "Cargar Imagen"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, WEBP. Máx 5MB.</p>
+                  {errors.image && (
+                    <p className="text-xs text-destructive flex items-center justify-center sm:justify-start">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.image}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
             
             <Button type="submit" className="w-full" disabled={isLoading}>

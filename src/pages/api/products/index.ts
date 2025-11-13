@@ -23,7 +23,6 @@ interface CreateProductBody {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await sequelize.sync({ alter: true });
 
   if (req.method === "GET") {
     try {

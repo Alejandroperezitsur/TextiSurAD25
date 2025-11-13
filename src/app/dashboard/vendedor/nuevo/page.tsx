@@ -131,12 +131,39 @@ export default function AddProductPage() {
         return;
       }
 
+      let uploadedUrl: string | undefined;
+      if (imagePreview) {
+        try {
+          const up = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dataUrl: imagePreview }),
+          });
+          if (up.ok) {
+            const j = await up.json();
+            uploadedUrl = String(j.url);
+          } else {
+            const err = await up.json().catch(() => null);
+            setErrors((prev) => ({ ...prev, image: err?.message || "No se pudo subir la imagen" }));
+            throw new Error("upload failed");
+          }
+        } catch (e) {
+          console.error("Upload error", e);
+          setErrors((prev) => ({ ...prev, image: "No se pudo subir la imagen" }));
+          throw e;
+        }
+      } else {
+        setErrors((prev) => ({ ...prev, image: "La imagen es obligatoria" }));
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         userEmail: String(user.email),
         name,
         description,
         price: parseFloat(price),
-        imageUrl: imagePreview || undefined,
+        imageUrl: uploadedUrl,
         stock: parseInt(stock, 10),
         status: "Activo" as const,
         category,

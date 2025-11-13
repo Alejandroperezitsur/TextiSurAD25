@@ -120,6 +120,18 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "vittorioforti.com.mx",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "th.bing.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
