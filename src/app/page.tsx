@@ -45,7 +45,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 
-// Use a subset of the new product list for featured products
+type ProductUI = { id: number; name: string; price: number; imageUrl?: string; category?: string; sizes: string[]; hint?: string; storeId: number; rating: number; hasDelivery: boolean; status?: "Activo" | "Inactivo"; stock?: number };
+type StoreUI = { id: number; name: string; description?: string; imageUrl?: string; slug: string; city?: string };
 const featuredProductsFull = [
   {
     id: "1",
@@ -177,18 +178,21 @@ const allProducts = [
 ];
 
 // Map to the structure expected by the homepage
-const featuredProducts = featuredProductsFull.map((p) => ({
-  id: parseInt(p.id, 10),
-  name: p.name,
-  price: p.price,
-  imageUrl: p.imageUrl,
-  category: p.category,
-  sizes: p.sizes, // Keep sizes array
-  hint: p.hint,
-  storeId: p.storeId,
-  rating: typeof p.rating === "number" ? p.rating : 4.5,
-  hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
-}));
+const featuredProducts = featuredProductsFull
+  .map((p) => ({
+    id: parseInt(p.id, 10),
+    name: p.name,
+    price: p.price,
+    imageUrl: p.imageUrl,
+    category: p.category,
+    sizes: p.sizes, // Keep sizes array
+    hint: p.hint,
+    storeId: p.storeId,
+    rating: typeof p.rating === "number" ? p.rating : 4.5,
+    hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
+  }))
+  .sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0))
+  .slice(0, 9);
 
 const categories = [
   {
@@ -422,9 +426,12 @@ export default function HomePage() {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
-  const [filteredProducts, setFilteredProducts] = useState(getAllProducts());
-  const [ownerStoreId, setOwnerStoreId] = useState<string | null>(null);
+  const [selectedStore, setSelectedStore] = useState<number | null>(null);
+  const [allProducts, setAllProducts] = useState<ProductUI[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<ProductUI[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductUI[]>([]);
+  const [registeredStores, setRegisteredStores] = useState<StoreUI[]>([]);
+  const [ownerStoreId, setOwnerStoreId] = useState<number | null>(null);
   const [ownerStoreSlug, setOwnerStoreSlug] = useState<string | null>(null);
 
   const autoplayPlugin = useRef(
@@ -441,24 +448,15 @@ export default function HomePage() {
         if (resp.ok) {
           const data = await resp.json();
           const s = data.store;
-          const slug = s?.slug as string | undefined;
-          if (slug) {
-            setOwnerStoreSlug(slug);
-            const rs = registeredStores.find((r) => r.slug === slug);
-            setOwnerStoreId(rs?.id ?? null);
-          }
+          setOwnerStoreSlug(s?.slug ?? null);
+          setOwnerStoreId(typeof s?.id === "number" ? s.id : null);
         } else if (resp.status === 404) {
-          // Fallback a localStorage si ya se asignó previamente
           try {
             const ls = localStorage.getItem("seller-store");
             if (ls) {
-              const s = JSON.parse(ls);
-              const slug = s?.slug as string | undefined;
-              if (slug) {
-                setOwnerStoreSlug(slug);
-                const rs = registeredStores.find((r) => r.slug === slug);
-                setOwnerStoreId(rs?.id ?? null);
-              }
+              const st = JSON.parse(ls);
+              setOwnerStoreSlug(st?.slug ?? null);
+              setOwnerStoreId(typeof st?.id === "number" ? st.id : null);
             }
           } catch {}
         }
@@ -466,28 +464,39 @@ export default function HomePage() {
     };
     fetchStore();
   }, [user, loading]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const sResp = await fetch("/api/stores");
+        const pResp = await fetch("/api/products");
+        const storesData = sResp.ok ? (await sResp.json()).stores : [];
+        const productsData = pResp.ok ? (await pResp.json()).products : [];
+        const storesMapped = storesData.map((s: any) => ({ id: Number(s.id), name: s.name, description: s.description, imageUrl: s.logo || `https://picsum.photos/seed/store-${s.id}/600/400`, slug: s.slug, city: s.city }));
+        const productsMapped = productsData.map((p: any) => ({ id: Number(p.id), name: p.name, price: Number(p.price), imageUrl: p.imageUrl || `https://picsum.photos/seed/product-${p.id}/400/500`, category: p.category, sizes: p.sizes ? JSON.parse(p.sizes) : [], hint: p.hint, storeId: Number(p.storeId), rating: typeof p.rating === "number" ? p.rating : 4.5, hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true, status: p.status, stock: Number(p.stock) }));
+        setRegisteredStores(storesMapped);
+        setAllProducts(productsMapped);
+        setFeaturedProducts(
+          productsMapped
+            .filter((p: any) => p.status !== "Inactivo")
+            .sort((a: any, b: any) => Number(b.rating ?? 0) - Number(a.rating ?? 0))
+            .slice(0, 3)
+        );
+        setFilteredProducts(productsMapped);
+      } catch {}
+    };
+    fetchData();
+  }, []);
   
   // Filtrar productos cuando cambia la tienda seleccionada
   useEffect(() => {
     if (selectedStore) {
-      const storeProducts = getProductsByStore(selectedStore);
-      setFilteredProducts(storeProducts.map(p => ({
-        id: parseInt(p.id, 10),
-        name: p.name,
-        price: p.price,
-        imageUrl: p.imageUrl,
-        category: p.category,
-        sizes: p.sizes,
-        hint: p.hint,
-        storeId: p.storeId,
-        rating: typeof (p as any).rating === "number" ? (p as any).rating : 4.5,
-        hasDelivery:
-          typeof (p as any).hasDelivery === "boolean" ? (p as any).hasDelivery : true,
-      })));
+      const storeProducts = allProducts.filter((p) => p.storeId === selectedStore);
+      setFilteredProducts(storeProducts);
     } else {
-      setFilteredProducts(getAllProducts());
+      setFilteredProducts(allProducts);
     }
-  }, [selectedStore]);
+  }, [selectedStore, allProducts]);
 
   useEffect(() => {
     if (!api) {
@@ -506,10 +515,10 @@ export default function HomePage() {
       id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.imageUrl,
+      imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`,
       quantity: 1,
-      size: product.sizes[0] || "N/A", // Default to first size or N/A
-      storeId: product.storeId,
+      size: product.sizes[0] || "N/A",
+      storeId: String(product.storeId),
     };
     addToCart(itemToAdd);
     toast({
@@ -672,7 +681,7 @@ export default function HomePage() {
                       item={{
                         id: String(product.id),
                         name: product.name,
-                        imageUrl: product.imageUrl,
+                        imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`,
                         price: product.price,
                         category: product.category,
                       }}
@@ -695,7 +704,7 @@ export default function HomePage() {
                     Destacado
                   </div>
                   <Image
-                    src={product.imageUrl}
+                    src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`}
                     alt={product.name}
                     fill
                     className="object-cover transition-all group-hover:scale-105"
@@ -776,12 +785,12 @@ export default function HomePage() {
                     </div>
                   )}
                   <Image
-                    src={store.imageUrl}
+                    src={store.imageUrl || `https://picsum.photos/seed/store-${store.id}/600/400`}
                     alt={`Logo de ${store.name}`}
                     width={600}
                     height={400}
                     className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
-                    data-ai-hint={store.dataAiHint}
+                    data-ai-hint={store.name}
                   />
                 </CardHeader>
                 <CardContent className="p-4 flex-grow">
@@ -842,7 +851,7 @@ export default function HomePage() {
                           item={{
                             id: String(product.id),
                             name: product.name,
-                            imageUrl: product.imageUrl,
+                            imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`,
                             price: product.price,
                             category: product.category,
                           }}
@@ -862,7 +871,7 @@ export default function HomePage() {
                         </Button>
                       </div>
                       <Image
-                        src={product.imageUrl}
+                        src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`}
                         alt={product.name}
                         fill
                         className="object-cover transition-all group-hover:scale-105"
