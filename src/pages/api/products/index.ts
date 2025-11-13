@@ -62,6 +62,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const store = await Store.findOne({ where: { userId: user.id } });
       if (!store) return res.status(400).json({ message: "El usuario no tiene tienda asignada" });
 
+      const sizesArray = (() => {
+        const s = (data as any).sizes;
+        if (Array.isArray(s)) return s.map((x) => String(x));
+        if (typeof s === "string") {
+          const txt = s.trim();
+          if (!txt) return [];
+          try {
+            const parsed = JSON.parse(txt);
+            return Array.isArray(parsed) ? parsed.map((x) => String(x)) : [];
+          } catch {
+            if (txt.includes(",")) return txt.split(",").map((t) => t.trim()).filter(Boolean);
+            return [txt];
+          }
+        }
+        return [];
+      })();
+
       const created = await Product.create({
         name: String(data.name),
         description: data.description ? String(data.description) : undefined,
@@ -70,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         stock: Number(data.stock ?? 0),
         status: data.status === "Inactivo" ? "Inactivo" : "Activo",
         category: data.category ? String(data.category) : undefined,
-        sizes: Array.isArray(data.sizes) ? JSON.stringify(data.sizes) : data.sizes,
+        sizes: JSON.stringify(sizesArray),
         hint: data.hint ? String(data.hint) : undefined,
         hasDelivery: typeof data.hasDelivery === "boolean" ? data.hasDelivery : true,
         rating: typeof data.rating === "number" ? data.rating : 4.5,

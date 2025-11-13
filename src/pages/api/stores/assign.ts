@@ -24,6 +24,7 @@ export default async function handler(
     storeData?: Partial<{
       name: string;
       description: string;
+      city: string;
       address: string;
       phone: string;
       email: string;
@@ -88,6 +89,7 @@ export default async function handler(
       store = await Store.create({
         name,
         description: storeData?.description || "",
+        city: storeData?.city || "Uriangato",
         address: storeData?.address || "",
         phone: storeData?.phone || "",
         email: storeData?.email || email,
@@ -99,6 +101,7 @@ export default async function handler(
       await store.update({
         name: storeData.name ?? store.name,
         description: storeData.description ?? store.description,
+        city: storeData.city ?? store.city,
         address: storeData.address ?? store.address,
         phone: storeData.phone ?? store.phone,
         email: storeData.email ?? store.email,

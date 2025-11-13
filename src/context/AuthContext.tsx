@@ -64,46 +64,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login = useCallback(async (email: string, password: string) => {
     try {
       setLoading(true);
-      
-      // Solución temporal: usar datos de prueba para evitar el error 500
-      // Esto simula un inicio de sesión exitoso mientras se resuelve el problema de la API
-      if (email === "vendedor@example.com" && password === "password123") {
-        const userData: User = {
-          id: "1",
-          name: "Juan Vendedor",
-          email: "vendedor@example.com",
-          role: "vendedor" as "vendedor"
-        };
-        
-        // Guardar los datos del usuario en localStorage
-        localStorage.setItem("token", "token_simulado_vendedor");
-        localStorage.setItem("user", JSON.stringify(userData));
-        
-        // Actualizar el estado del usuario
-        setUser(userData);
-        router.push("/");
-        return;
-      }
-      
-      if (email === "comprador@example.com" && password === "password123") {
-        const userData: User = {
-          id: "2",
-          name: "Ana Compradora",
-          email: "comprador@example.com",
-          role: "comprador" as "comprador"
-        };
-        
-        // Guardar los datos del usuario en localStorage
-        localStorage.setItem("token", "token_simulado_comprador");
-        localStorage.setItem("user", JSON.stringify(userData));
-        
-        // Actualizar el estado del usuario
-        setUser(userData);
-        router.push("/");
-        return;
-      }
-      
-      // Si no coincide con los usuarios de prueba, intentar con la API
       const response = await axios.post("/api/login", { email, password });
       
       if (response.status === 200) {
@@ -127,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("token");
-    localStorage.removeItem("textisur-user");
+    localStorage.removeItem("user");
     router.push("/");
   }, [router]);
 

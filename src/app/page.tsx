@@ -473,7 +473,43 @@ export default function HomePage() {
         const storesData = sResp.ok ? (await sResp.json()).stores : [];
         const productsData = pResp.ok ? (await pResp.json()).products : [];
         const storesMapped = storesData.map((s: any) => ({ id: Number(s.id), name: s.name, description: s.description, imageUrl: s.logo || `https://picsum.photos/seed/store-${s.id}/600/400`, slug: s.slug, city: s.city }));
-        const productsMapped = productsData.map((p: any) => ({ id: Number(p.id), name: p.name, price: Number(p.price), imageUrl: p.imageUrl || `https://picsum.photos/seed/product-${p.id}/400/500`, category: p.category, sizes: p.sizes ? JSON.parse(p.sizes) : [], hint: p.hint, storeId: Number(p.storeId), rating: typeof p.rating === "number" ? p.rating : 4.5, hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true, status: p.status, stock: Number(p.stock) }));
+        const productsMapped = Array.isArray(productsData)
+          ? productsData.map((p: any) => ({
+              id: Number(p.id),
+              name: p.name,
+              price: Number(p.price),
+              imageUrl: p.imageUrl || `https://picsum.photos/seed/product-${p.id}/400/500`,
+              category: p.category,
+              sizes: (() => {
+                try {
+                  if (Array.isArray(p.sizes)) return p.sizes as string[];
+                  if (typeof p.sizes === "string") {
+                    const txt = p.sizes.trim();
+                    if (!txt) return [];
+                    // Try JSON first
+                    try {
+                      const parsed = JSON.parse(txt);
+                      return Array.isArray(parsed) ? parsed : [];
+                    } catch {
+                      // Fallback: comma separated list
+                      if (txt.includes(",")) return txt.split(",").map((s: string) => s.trim()).filter(Boolean);
+                      return [txt];
+                    }
+                  }
+                  return [];
+                } catch {
+                  return [];
+                }
+              })(),
+              hint: p.hint,
+              storeId: Number(p.storeId),
+              rating: typeof p.rating === "number" ? p.rating : 4.5,
+              hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
+              status: p.status,
+              stock: Number(p.stock),
+            })
+          )
+          : [];
         setRegisteredStores(storesMapped);
         setAllProducts(productsMapped);
         setFeaturedProducts(

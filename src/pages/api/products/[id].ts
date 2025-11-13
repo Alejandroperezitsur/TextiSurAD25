@@ -30,6 +30,23 @@ export default async function handler(
       if (!product) return res.status(404).json({ message: "Producto no encontrado" });
 
       const data = req.body as Record<string, unknown>;
+      const sizesArray = (() => {
+        const s = (data as any).sizes;
+        if (Array.isArray(s)) return s.map((x) => String(x));
+        if (typeof s === "string") {
+          const txt = s.trim();
+          if (!txt) return [];
+          try {
+            const parsed = JSON.parse(txt);
+            return Array.isArray(parsed) ? parsed.map((x) => String(x)) : [];
+          } catch {
+            if (txt.includes(",")) return txt.split(",").map((t) => t.trim()).filter(Boolean);
+            return [txt];
+          }
+        }
+        return [];
+      })();
+
       const updated = await product.update({
         name: typeof data.name === "string" ? data.name : product.name,
         description: typeof data.description === "string" ? data.description : product.description,
@@ -38,7 +55,7 @@ export default async function handler(
         stock: typeof data.stock === "number" ? data.stock : product.stock,
         status: data.status === "Inactivo" || data.status === "Activo" ? (data.status as "Activo" | "Inactivo") : product.status,
         category: typeof data.category === "string" ? data.category : product.category,
-        sizes: Array.isArray(data.sizes) ? JSON.stringify(data.sizes) : typeof data.sizes === "string" ? data.sizes : product.sizes,
+        sizes: JSON.stringify(sizesArray),
         hint: typeof data.hint === "string" ? data.hint : product.hint,
         hasDelivery: typeof data.hasDelivery === "boolean" ? data.hasDelivery : product.hasDelivery,
         rating: typeof data.rating === "number" ? data.rating : product.rating,

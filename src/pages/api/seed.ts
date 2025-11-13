@@ -4,6 +4,7 @@ import User from '../../models/User';
 import Store from '../../models/Store';
 import Product from '../../models/Product';
 import Order from '../../models/Order';
+import bcrypt from 'bcrypt';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,15 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     await sequelize.sync({ force: true });
 
+    const hashed = await bcrypt.hash('password123', 10);
     const users = await User.bulkCreate([
-      // Vendedores
-      { name: 'Denis', email: 'denis@textisur.com', password: 'password123', role: 'vendedor' },
-      { name: 'Ana', email: 'ana@textisur.com', password: 'password123', role: 'vendedor' },
-      { name: 'Carlos', email: 'carlos@textisur.com', password: 'password123', role: 'vendedor' },
-      // Compradores
-      { name: 'Lupita', email: 'lupita@textisur.com', password: 'password123', role: 'comprador' },
-      { name: 'Juan', email: 'juan@textisur.com', password: 'password123', role: 'comprador' },
-      { name: 'Maria', email: 'maria@textisur.com', password: 'password123', role: 'comprador' },
+      { name: 'Denis', email: 'denis@textisur.com', password: hashed, role: 'vendedor' },
+      { name: 'Ana', email: 'ana@textisur.com', password: hashed, role: 'vendedor' },
+      { name: 'Carlos', email: 'carlos@textisur.com', password: hashed, role: 'vendedor' },
+      { name: 'Lupita', email: 'lupita@textisur.com', password: hashed, role: 'comprador' },
+      { name: 'Juan', email: 'juan@textisur.com', password: hashed, role: 'comprador' },
+      { name: 'Maria', email: 'maria@textisur.com', password: hashed, role: 'comprador' },
     ]);
 
     const stores = await Store.bulkCreate([

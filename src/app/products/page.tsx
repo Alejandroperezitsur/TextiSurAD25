@@ -155,28 +155,32 @@ export default function ProductsPage() {
         const resp = await fetch(`/api/products`);
         if (resp.ok) {
           const data = await resp.json();
-          const list: CatalogProduct[] = (data.products || []).map((p: {
-            id: number | string;
-            name: string;
-            price: number | string;
-            imageUrl?: string;
-            category?: string;
-            sizes?: string | string[];
-            hint?: string;
-            rating?: number;
-            hasDelivery?: boolean;
-          }) => ({
+          const raw = Array.isArray(data.products) ? data.products : [];
+          const list: CatalogProduct[] = raw.map((p: any) => ({
             id: Number(p.id),
             name: String(p.name),
             price: Number(p.price),
             imageUrl: p.imageUrl,
             category: p.category,
-            sizes:
-              typeof p.sizes === "string"
-                ? (JSON.parse(p.sizes) as string[])
-                : Array.isArray(p.sizes)
-                ? p.sizes
-                : [],
+            sizes: (() => {
+              try {
+                if (Array.isArray(p.sizes)) return p.sizes as string[];
+                if (typeof p.sizes === "string") {
+                  const txt = p.sizes.trim();
+                  if (!txt) return [];
+                  try {
+                    const parsed = JSON.parse(txt);
+                    return Array.isArray(parsed) ? parsed : [];
+                  } catch {
+                    if (txt.includes(",")) return txt.split(",").map((s: string) => s.trim()).filter(Boolean);
+                    return [txt];
+                  }
+                }
+                return [];
+              } catch {
+                return [];
+              }
+            })(),
             hint: p.hint,
             rating: typeof p.rating === "number" ? p.rating : 4.5,
             hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
