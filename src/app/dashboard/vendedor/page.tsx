@@ -73,14 +73,23 @@ export default function SellerDashboardPage() {
     router.push(`/dashboard/vendedor/products/${id}/edit`);
   };
 
-  const handleDelete = (id: number) => {
-    console.log(`Delete product ${id}`);
-    if (
-      confirm(
-        `¿Seguro que quieres eliminar el producto ${id}? Esta acción no se puede deshacer.`,
-      )
-    ) {
-      alert(`Producto ${id} eliminado (simulación).`);
+  const handleDelete = async (id: number) => {
+    if (!confirm(`¿Seguro que quieres eliminar el producto ${id}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    try {
+      const resp = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (resp.status === 204) {
+        setSellerProducts((prev) => prev.filter((p) => p.id !== id));
+      } else if (resp.status === 404) {
+        alert("Producto no encontrado");
+      } else {
+        const data = await resp.json().catch(() => null);
+        alert(`Error al eliminar: ${data?.message || resp.statusText}`);
+      }
+    } catch (error) {
+      console.error("DELETE product error", error);
+      alert("Error de red al eliminar el producto");
     }
   };
 

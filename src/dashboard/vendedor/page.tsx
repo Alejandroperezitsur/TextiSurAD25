@@ -66,15 +66,24 @@ export default function SellerDashboardPage() {
     alert(`Editar producto ${id} (funcionalidad pendiente)`);
   };
 
-  const handleDelete = (id: number) => {
-    console.log(`Delete product ${id}`);
-    // Show confirmation and call delete API
-    if (
-      confirm(`¿Seguro que quieres eliminar el producto ${id}? Esta acción no se puede deshacer.`)
-    ) {
-      // Perform deletion logic here (e.g., API call)
-      alert(`Producto ${id} eliminado (simulación).`);
-      // Update state or refetch data after deletion
+  const handleDelete = async (id: number) => {
+    if (!confirm(`¿Seguro que quieres eliminar el producto ${id}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    try {
+      const resp = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (resp.status === 204) {
+        // In this legacy page, products are mocked; optionally do nothing or reload.
+        // window.location.reload();
+      } else if (resp.status === 404) {
+        alert("Producto no encontrado");
+      } else {
+        const data = await resp.json().catch(() => null);
+        alert(`Error al eliminar: ${data?.message || resp.statusText}`);
+      }
+    } catch (error) {
+      console.error("DELETE product error", error);
+      alert("Error de red al eliminar el producto");
     }
   };
 

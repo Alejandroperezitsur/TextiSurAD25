@@ -121,34 +121,50 @@ export default function AddProductPage() {
     }
 
     setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const productData = {
-      name,
-      description,
-      price: parseFloat(price),
-      category,
-      availableSizes,
-      stock: parseInt(stock),
-      // In a real app, upload imageFile and get the URL
-      imageUrl: imagePreview, // Use preview URL for simulation
-      // Generate a hint for potential AI image replacement
-      hint: `${category.toLowerCase()} ${name.split(" ")[0].toLowerCase()}`.substring(
-        0,
-        20,
-      ), // Simple hint
-    };
-    console.log("Adding product:", productData);
-    // TODO: Replace console.log with actual API call to save productData
+    try {
+      const userRaw = localStorage.getItem("user");
+      const user = userRaw ? JSON.parse(userRaw) : null;
+      if (!user?.email) {
+        toast({ variant: "destructive", title: "Sesión requerida", description: "Inicia sesión para publicar productos." });
+        router.push("/(auth)/login");
+        return;
+      }
 
-    toast({
-      title: "Producto Añadido",
-      description: `"${name}" ha sido añadido a tus publicaciones.`,
-    });
-    router.push("/dashboard/vendedor");
+      const payload = {
+        userEmail: String(user.email),
+        name,
+        description,
+        price: parseFloat(price),
+        imageUrl: imagePreview || undefined,
+        stock: parseInt(stock, 10),
+        status: "Activo" as const,
+        category,
+        sizes: availableSizes,
+        hint: `${category.toLowerCase()} ${name.split(" ")[0].toLowerCase()}`.substring(0, 20),
+        hasDelivery: true,
+        rating: 4.5,
+      };
 
-    // setLoading(false); // Keep loading until redirection is complete
+      const resp = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (resp.status === 201) {
+        toast({ title: "Producto Añadido", description: `"${name}" ha sido añadido a tus publicaciones.` });
+        router.push("/dashboard/vendedor");
+      } else {
+        const data = await resp.json().catch(() => null);
+        toast({ variant: "destructive", title: "Error al crear", description: data?.message || resp.statusText });
+      }
+    } catch (error) {
+      console.error("POST /api/products error", error);
+      toast({ variant: "destructive", title: "Error de red", description: "No se pudo crear el producto." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
