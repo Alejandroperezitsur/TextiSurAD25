@@ -48,19 +48,10 @@ export default async function handler(
         email,
         password: hashed,
         role: "vendedor",
-      } as any);
+      });
     }
 
-    // Derivar userId de forma robusta
-    const userId = Number((user as any)?.id ?? (user as any)?.get?.("id") ?? (user as any)?.dataValues?.id);
-    if (!userId) {
-      // Reintentar buscando por email
-      const retry = await User.findOne({ where: { email } });
-      const retryId = Number((retry as any)?.id ?? (retry as any)?.get?.("id") ?? (retry as any)?.dataValues?.id);
-      if (!retryId) {
-        return res.status(500).json({ message: "No se pudo determinar el ID de usuario" });
-      }
-    }
+    const userId = user.id;
 
     // Si se pasa storeId o slug, asignar esa tienda existente al usuario
     if (storeId || storeSlug) {
@@ -71,7 +62,7 @@ export default async function handler(
         return res.status(404).json({ message: "Tienda especificada no encontrada" });
       }
       await targetStore.update({
-        userId: Number((user as any)?.id ?? (user as any)?.get?.("id") ?? (user as any)?.dataValues?.id),
+        userId: user.id,
         name: storeData?.name ?? targetStore.name,
         description: storeData?.description ?? targetStore.description,
         address: storeData?.address ?? targetStore.address,

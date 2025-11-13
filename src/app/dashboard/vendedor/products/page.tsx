@@ -10,51 +10,46 @@ import Link from "next/link";
 import Image from "next/image";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 
-// Datos de ejemplo para productos
-const mockProducts = [
-  {
-    id: "1",
-    name: "Camisa Clásica Teal",
-    price: 29.99,
-    imageUrl: "https://i.etsystatic.com/6777526/r/il/b079af/4824317243/il_570xN.4824317243_nsi7.jpg",
-    stock: 15,
-    status: "Activo",
-  },
-  {
-    id: "2",
-    name: "Camiseta Básica Gris",
-    price: 19.99,
-    imageUrl: "https://myspringfield.com/dw/image/v2/AAYL_PRD/on/demandware.static/-/Sites-gc-spf-master-catalog/default/dwecf64744/images/hi-res/P_680084145FM.jpg?sw=600&sh=900&sm=fit",
-    stock: 30,
-    status: "Activo",
-  },
-  {
-    id: "3",
-    name: "Camisa de Franela a Cuadros",
-    price: 35.0,
-    imageUrl: "https://i.etsystatic.com/35566366/r/il/9281d3/5173059999/il_fullxfull.5173059999_tslo.jpg",
-    stock: 0,
-    status: "Agotado",
-  },
-];
+type Prod = { id: number; name: string; price: number; imageUrl?: string; stock: number; status: string };
 
 export default function ProductsManagementPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState<Prod[]>([]);
 
   useEffect(() => {
-    // Verificar que el usuario sea vendedor
     if (!user || user.role !== "vendedor") {
       router.push("/");
       return;
     }
+    const fetchProducts = async () => {
+      try {
+        const resp = await fetch(`/api/products?userEmail=${encodeURIComponent(user.email)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          const list = (data.products || []).map((p: any) => ({ id: Number(p.id), name: p.name, price: Number(p.price), imageUrl: p.imageUrl, stock: Number(p.stock), status: String(p.status) }));
+          setProducts(list);
+        } else {
+          setProducts([]);
+        }
+      } catch {
+        setProducts([]);
+      }
+    };
+    fetchProducts();
+    const es = new EventSource(`/api/products/stream`);
+    es.onmessage = () => fetchProducts();
+    return () => { es.close(); };
   }, [user, router]);
 
-  const handleDelete = (id: string) => {
-    if (confirm(`¿Estás seguro de que deseas eliminar este producto?`)) {
-      setProducts(products.filter(product => product.id !== id));
-    }
+  const handleDelete = async (id: number) => {
+    if (!confirm(`¿Estás seguro de que deseas eliminar este producto?`)) return;
+    try {
+      const resp = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (resp.status === 204) {
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch {}
   };
 
   if (!user || user.role !== "vendedor") {
@@ -88,14 +83,14 @@ export default function ProductsManagementPage() {
                   item={{
                     id: String(product.id),
                     name: product.name,
-                    imageUrl: product.imageUrl,
+                    imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`,
                     price: product.price,
                     category: "Mis Productos",
                   }}
                 />
               </div>
               <Image
-                src={product.imageUrl}
+                src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`}
                 alt={product.name}
                 fill
                 style={{ objectFit: "cover" }}
@@ -117,12 +112,12 @@ export default function ProductsManagementPage() {
               </div>
               <div className="flex justify-between mb-4">
                 <span>Estado:</span>
-                <span className={product.status === "Agotado" ? "text-red-500 font-bold" : "text-green-500 font-bold"}>
+                <span className={product.status !== "Activo" ? "text-red-500 font-bold" : "text-green-500 font-bold"}>
                   {product.status}
                 </span>
               </div>
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => router.push(`/dashboard/vendedor/products/edit/${product.id}`)}>
+                <Button variant="outline" onClick={() => router.push(`/dashboard/vendedor/products/${product.id}/edit`)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Editar
                 </Button>

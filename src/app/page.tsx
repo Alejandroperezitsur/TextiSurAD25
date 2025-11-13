@@ -88,7 +88,7 @@ const featuredProductsFull = [
 
 // Productos adicionales para asegurar que cada tienda tenga al menos un producto
 // Exportamos para que sea accesible desde la página de tienda
-export const allProducts = [
+const allProducts = [
   ...featuredProductsFull,
   {
     id: "2",
@@ -299,7 +299,7 @@ const featuredOffers = [
 ];
 
 // Exportamos para que sea accesible desde la página de tienda
-export const registeredStores = [
+const registeredStores = [
   {
     id: "store1",
     name: "Artesanías Elena",

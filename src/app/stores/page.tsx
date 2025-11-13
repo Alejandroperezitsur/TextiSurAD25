@@ -16,7 +16,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { StoreIcon, X } from "lucide-react";
-import { registeredStores } from "../page";
+// Datos de tiendas se obtienen desde API
 import {
   Select,
   SelectContent,
@@ -31,6 +31,7 @@ export default function StoresPage() {
 
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
+  const [stores, setStores] = useState<any[]>([]);
 
   useEffect(() => {
     if (!searchParams) return;
@@ -40,17 +41,43 @@ export default function StoresPage() {
     setSelectedCategory(initialCategory);
   }, [searchParams?.toString()]);
 
+  useEffect(() => {
+    const loadStores = async () => {
+      try {
+        const resp = await fetch("/api/stores");
+        if (resp.ok) {
+          const data = await resp.json();
+          const list = (data.stores || []).map((s: any) => ({
+            id: String(s.id),
+            name: s.name,
+            description: s.description || "",
+            imageUrl: s.logo || `https://picsum.photos/seed/store-${s.slug}/600/400`,
+            slug: s.slug,
+            dataAiHint: "store",
+            categories: [],
+          }));
+          setStores(list);
+        } else {
+          setStores([]);
+        }
+      } catch {
+        setStores([]);
+      }
+    };
+    loadStores();
+  }, []);
+
   const allCategories = useMemo(() => {
     const set = new Set<string>();
-    registeredStores.forEach((s: any) => {
+    stores.forEach((s: any) => {
       (s.categories || []).forEach((c: string) => set.add(c));
     });
     return ["Todas", ...Array.from(set)];
-  }, []);
+  }, [stores]);
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return registeredStores.filter((s: any) => {
+    return stores.filter((s: any) => {
       const matchesQuery =
         !q ||
         s.name.toLowerCase().includes(q) ||
@@ -60,7 +87,7 @@ export default function StoresPage() {
         selectedCategory === "Todas" || (s.categories || []).includes(selectedCategory);
       return matchesQuery && matchesCategory;
     });
-  }, [query, selectedCategory]);
+  }, [query, selectedCategory, stores]);
 
   const applySearch = (value: string) => {
     setQuery(value);

@@ -52,70 +52,57 @@ export default function EditProductPage() {
       return;
     }
 
-    // Cargar producto desde localStorage o crear uno por defecto
-    const stored = localStorage.getItem("seller-products");
-    if (stored) {
+    const fetchProduct = async () => {
       try {
-        const arr: SellerProduct[] = JSON.parse(stored);
-        const found = arr.find((p) => p.id === productId) || null;
-        if (found) {
-          setProduct(found);
-        } else {
+        const resp = await fetch(`/api/products/${productId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          const p = data.product;
           setProduct({
-            id: productId,
-            name: `Producto ${productId}`,
-            price: 0,
-            imageUrl: "https://picsum.photos/seed/product/400/500",
-            stock: 0,
-            status: "Activo",
-            sizes: [],
+            id: Number(p.id),
+            name: p.name,
+            price: Number(p.price),
+            imageUrl: p.imageUrl || "",
+            stock: Number(p.stock),
+            status: (p.status === "Inactivo" ? "Inactivo" : "Activo") as any,
+            category: p.category || "",
+            sizes: p.sizes ? JSON.parse(p.sizes) : [],
           });
+        } else {
+          setProduct({ id: productId, name: `Producto ${productId}`, price: 0, imageUrl: "", stock: 0, status: "Activo", sizes: [] });
         }
       } catch {
-        setProduct({
-          id: productId,
-          name: `Producto ${productId}`,
-          price: 0,
-          imageUrl: "https://picsum.photos/seed/product/400/500",
-          stock: 0,
-          status: "Activo",
-          sizes: [],
-        });
+        setProduct({ id: productId, name: `Producto ${productId}`, price: 0, imageUrl: "", stock: 0, status: "Activo", sizes: [] });
       }
-    } else {
-      setProduct({
-        id: productId,
-        name: `Producto ${productId}`,
-        price: 0,
-        imageUrl: "https://picsum.photos/seed/product/400/500",
-        stock: 0,
-        status: "Activo",
-        sizes: [],
-      });
-    }
+    };
+    fetchProduct();
 
     setLoading(false);
   }, [productId, router]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!product) return;
-
     try {
-      const stored = localStorage.getItem("seller-products");
-      let arr: SellerProduct[] = [];
-      if (stored) {
-        arr = JSON.parse(stored);
-      }
-
-      const index = arr.findIndex((p) => p.id === product.id);
-      if (index >= 0) {
-        arr[index] = product;
+      const payload: any = {
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        stock: product.stock,
+        status: product.status,
+        category: product.category,
+        sizes: product.sizes,
+      };
+      const resp = await fetch(`/api/products/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) {
+        router.replace("/dashboard/vendedor/products");
       } else {
-        arr.push(product);
+        alert("No se pudo guardar el producto.");
       }
-      localStorage.setItem("seller-products", JSON.stringify(arr));
-      router.replace("/dashboard/vendedor");
     } catch (err) {
       console.error("Error guardando producto:", err);
       alert("No se pudo guardar el producto.");

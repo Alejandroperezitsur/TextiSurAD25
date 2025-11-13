@@ -10,7 +10,7 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     logging: true, // Activamos el logging para desarrollo
     pool: {
-      max: 5,
+      max: 10,
       min: 0,
       acquire: 30000,
       idle: 10000

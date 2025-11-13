@@ -25,7 +25,7 @@ export default async function handler(
   };
 
   try {
-    let store: Store | null = null as any;
+    let store: Store | null = null;
 
     if (storeId) {
       store = await Store.findByPk(Number(storeId));
@@ -34,8 +34,7 @@ export default async function handler(
       if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
-      const uid = Number((user as any)?.getDataValue?.("id") ?? (user as any)?.dataValues?.id ?? (user as any)?.get?.("id") ?? (user as any)?.id);
-      store = await Store.findOne({ where: { userId: uid } });
+      store = await Store.findOne({ where: { userId: user.id } });
     }
 
     if (!store) {

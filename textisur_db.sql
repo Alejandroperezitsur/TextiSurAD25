@@ -2,6 +2,7 @@
 CREATE DATABASE IF NOT EXISTS textisur_db;
 USE textisur_db;
 
+select * from users;
 -- Tabla de usuarios
 CREATE TABLE IF NOT EXISTS users (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

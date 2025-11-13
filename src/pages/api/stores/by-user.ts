@@ -26,8 +26,7 @@ export default async function handler(
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    const uid = Number((user as any)?.getDataValue?.("id") ?? (user as any)?.dataValues?.id ?? (user as any)?.get?.("id") ?? (user as any)?.id);
-    const store = await Store.findOne({ where: { userId: uid } });
+    const store = await Store.findOne({ where: { userId: user.id } });
     if (!store) {
       return res.status(404).json({ message: "Tienda no encontrada para el usuario" });
     }

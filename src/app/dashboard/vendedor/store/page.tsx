@@ -61,7 +61,7 @@ export default function SellerStorePage() {
           router.replace("/");
           return;
         }
-        // Recuperar tienda desde API; si no existe, asignar una tienda destacada por defecto.
+        // Recuperar tienda desde API; si no existe, no mostrar ninguna.
         try {
           const resp = await fetch(`/api/stores/by-user?email=${encodeURIComponent(user.email)}`);
           if (resp.ok) {
@@ -69,37 +69,11 @@ export default function SellerStorePage() {
             const s = data.store as SellerStore;
             setStore(s);
             try { localStorage.setItem("seller-store", JSON.stringify(s)); } catch {}
-          } else if (resp.status === 404) {
-            // Auto-asignar "Hilos del Sur" al vendedor si no tiene tienda aún
-            const assign = await fetch("/api/stores/assign", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: user.email,
-                storeData: {
-                  name: "Hilos del Sur",
-                  description: "Lanas naturales y accesorios para tejido. Inspiración para tus creaciones.",
-                  address: "Av. Principal 123, Ciudad Textil",
-                  phone: "",
-                  email: user.email,
-                  logo: "",
-                  slug: "hilos-del-sur",
-                },
-              }),
-            });
-            if (assign.ok) {
-              const data = await assign.json();
-              const s = data.store as SellerStore;
-              setStore(s);
-              try { localStorage.setItem("seller-store", JSON.stringify(s)); } catch {}
-            } else {
-              setStore(null);
-            }
           } else {
             setStore(null);
           }
         } catch (err) {
-          console.error("Error obteniendo/creando tienda del vendedor", err);
+          console.error("Error obteniendo tienda del vendedor", err);
           setStore(null);
         }
       } catch {}

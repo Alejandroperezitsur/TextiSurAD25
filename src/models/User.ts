@@ -1,4 +1,4 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "@/lib/sequelize";
 
 interface UserAttributes {
@@ -12,7 +12,12 @@ interface UserAttributes {
   updatedAt?: Date;
 }
 
-class User extends Model<UserAttributes> implements UserAttributes {
+type UserCreationAttributes = Optional<
+  UserAttributes,
+  "id" | "avatarUrl" | "createdAt" | "updatedAt"
+>;
+
+class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   declare id: number;
   declare name: string;
   declare email: string;

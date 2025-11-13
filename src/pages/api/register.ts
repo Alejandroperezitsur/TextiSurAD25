@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import User from "@/models/User";
 import bcrypt from "bcrypt";
-import { Op } from "sequelize";
 import sequelize from "@/lib/sequelize";
 
 // Asegurarse de que Sequelize esté sincronizado
@@ -42,7 +41,7 @@ export default async function handler(
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Crear el usuario
-    const userData: any = { name, email, password: hashedPassword, role };
+    const userData: { name: string; email: string; password: string; role: "comprador" | "vendedor"; avatarUrl?: string } = { name, email, password: hashedPassword, role };
     if (avatarUrl) userData.avatarUrl = avatarUrl;
 
     const newUser = await User.create(userData);

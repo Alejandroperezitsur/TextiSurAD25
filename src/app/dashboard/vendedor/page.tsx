@@ -17,48 +17,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 
-// Datos por defecto de productos del vendedor
-const defaultSellerProducts = [
-  {
-    id: 1,
-    name: "Camisa Clásica Teal",
-    price: 29.99,
-    imageUrl:
-      "https://i.etsystatic.com/6777526/r/il/b079af/4824317243/il_570xN.4824317243_nsi7.jpg",
-    stock: 15,
-    status: "Activo",
-    hint: "teal shirt",
-  },
-  {
-    id: 5,
-    name: "Camiseta Básica Gris",
-    price: 19.99,
-    imageUrl:
-      "https://myspringfield.com/dw/image/v2/AAYL_PRD/on/demandware.static/-/Sites-gc-spf-master-catalog/default/dwecf64744/images/hi-res/P_680084145FM.jpg?sw=600&sh=900&sm=fit",
-    stock: 30,
-    status: "Activo",
-    hint: "grey t-shirt",
-  },
-  {
-    id: 9,
-    name: "Camisa de Franela a Cuadros",
-    price: 35.0,
-    imageUrl:
-      "https://i.etsystatic.com/35566366/r/il/9281d3/5173059999/il_fullxfull.5173059999_tslo.jpg",
-    stock: 0,
-    status: "Agotado",
-    hint: "flannel shirt",
-  },
-  {
-    id: 13,
-    name: "Zapatillas Deportivas Blancas",
-    price: 75.0,
-    imageUrl: "https://picsum.photos/seed/whitesneakers/400/500",
-    stock: 5,
-    status: "Activo",
-    hint: "white sneakers",
-  },
-];
+type SellerProduct = { id: number; name: string; price: number; imageUrl?: string; stock: number; status: string; hint?: string };
 
 interface User {
   id: number;
@@ -69,7 +28,7 @@ interface User {
 
 export default function SellerDashboardPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [sellerProducts, setSellerProducts] = useState<typeof defaultSellerProducts>(defaultSellerProducts);
+  const [sellerProducts, setSellerProducts] = useState<SellerProduct[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -79,21 +38,31 @@ export default function SellerDashboardPage() {
       return;
     }
 
-    // Obtener los datos del usuario directamente del localStorage
     try {
       const userData = JSON.parse(localStorage.getItem("user") || "null");
-      if (userData) {
-        setUser(userData);
-        // Cargar productos desde localStorage si existen
-        try {
-          const stored = JSON.parse(localStorage.getItem("seller-products") || "null");
-          if (Array.isArray(stored) && stored.length) {
-            setSellerProducts(stored);
-          }
-        } catch {}
-      } else {
+      if (!userData) {
         router.push("/(auth)/login");
+        return;
       }
+      setUser(userData);
+      const fetchProducts = async () => {
+        try {
+          const resp = await fetch(`/api/products?userEmail=${encodeURIComponent(userData.email)}`);
+          if (resp.ok) {
+            const data = await resp.json();
+            const list = (data.products || []).map((p: any) => ({ id: Number(p.id), name: p.name, price: Number(p.price), imageUrl: p.imageUrl, stock: Number(p.stock), status: String(p.status), hint: p.hint }));
+            setSellerProducts(list);
+          } else {
+            setSellerProducts([]);
+          }
+        } catch {
+          setSellerProducts([]);
+        }
+      };
+      fetchProducts();
+      const es = new EventSource(`/api/products/stream`);
+      es.onmessage = () => fetchProducts();
+      return () => { es.close(); };
     } catch (error) {
       console.error("Error al obtener datos del usuario:", error);
       router.push("/(auth)/login");
@@ -149,7 +118,7 @@ export default function SellerDashboardPage() {
         </h1>
         <div className="flex gap-2">
           <Button asChild className="btn-accent w-full sm:w-auto">
-            <Link href="/dashboard/vendedor/nuevo">
+            <Link href="/dashboard/vendedor/products/new">
               <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Producto
             </Link>
           </Button>
@@ -185,7 +154,7 @@ export default function SellerDashboardPage() {
                   aria-label={`Ver ${product.name}`}
                 >
                   <Image
-                    src={product.imageUrl}
+                    src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`}
                     alt={`Imagen de ${product.name}`}
                     width={400}
                     height={500}
@@ -198,7 +167,7 @@ export default function SellerDashboardPage() {
                     item={{
                       id: String(product.id),
                       name: product.name,
-                      imageUrl: product.imageUrl,
+                      imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`,
                       price: product.price,
                       category: "Mis Publicaciones",
                     }}

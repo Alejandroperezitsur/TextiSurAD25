@@ -13,7 +13,7 @@ import {
   ArrowLeft,
 } from "lucide-react"; // Added ArrowLeft
 import Image from "next/image";
-import Link from "next/link"; // Added Link
+ 
 import { notFound, useRouter } from "next/navigation"; // Added useRouter
 import { useState, useEffect } from "react"; // Added useEffect
 import { use } from "react"; // Added for params unwrapping
@@ -30,336 +30,28 @@ import { useCart } from "@/context/CartContext"; // Import useCart
 import type { CartItem } from "@/types/cart"; // Import CartItem type
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { useRatings } from "@/context/RatingsContext";
-import { useAuth } from "@/context/AuthContext";
+import type { FavoriteItem } from "@/context/FavoritesContext";
+ 
 import { Textarea } from "@/components/ui/textarea";
 
-// Updated product data with real product information
-const products = [
-  {
-    id: "1",
-    name: "Camisa Clásica Teal",
-    price: 29.99,
-    imageUrl:
-      "https://i.etsystatic.com/6777526/r/il/b079af/4824317243/il_570xN.4824317243_nsi7.jpg",
-    description:
-      "Una camisa cómoda y elegante en nuestro color teal característico. Hecha de 100% algodón orgánico.",
-    category: "Camisas",
-    sizes: ["S", "M", "L", "XL"],
-    stock: 25,
-    rating: 4.5,
-    reviews: 120,
-    material: "100% Algodón Orgánico",
-    care: "Lavar a máquina con agua fría, secar en secadora a baja temperatura.",
-    hint: "teal shirt",
-    storeId: "store1",
-  },
-  {
-    id: "2",
-    name: "Jeans Cómodos Grises",
-    price: 45.5,
-    imageUrl:
-      "https://pantalonesdemezclilla.mx/cdn/shop/files/Regular-Mom-Jeans-Gris-Para-Hombre_1_9d1541b8-cbda-46af-9395-a597fadd6194.jpg?v=1727668588&width=1445",
-    description:
-      "Jeans grises duraderos y suaves, perfectos para el uso diario. Diseño clásico de cinco bolsillos.",
-    category: "Pantalones",
-    sizes: ["30W/32L", "32W/32L", "34W/34L"],
-    stock: 18,
-    rating: 4.2,
-    reviews: 85,
-    material: "98% Algodón, 2% Elastano",
-    care: "Lavar a máquina con colores similares, no usar lejía.",
-    hint: "grey jeans",
-    storeId: "store1",
-  },
-  {
-    id: "3",
-    name: "Bufanda Amarilla Mostaza",
-    price: 15.0,
-    imageUrl:
-      "https://i.etsystatic.com/8658679/r/il/f2ce25/2845568138/il_570xN.2845568138_r82f.jpg",
-    description:
-      "Añade un toque de color con esta suave bufanda amarilla mostaza. Ligera y versátil.",
-    category: "Accesorios",
-    sizes: ["Talla Única"],
-    stock: 30,
-    rating: 4.9,
-    reviews: 210,
-    material: "100% Acrílico Suave",
-    care: "Lavar a mano con agua fría, secar al aire.",
-    hint: "mustard scarf",
-    storeId: "store1",
-  },
-  {
-    id: "4",
-    name: "Vestido Rayado Teal",
-    price: 55.0,
-    imageUrl:
-      "https://shasa.com/cdn/shop/files/2403378111_1.jpg?v=1718325587&width=3840",
-    category: "Vestidos",
-    description:
-      "Elegante vestido a rayas en teal y blanco. Perfecto para salidas de verano.",
-    sizes: ["XS", "S", "M"],
-    stock: 12,
-    rating: 4.6,
-    reviews: 95,
-    material: "Mezcla de Rayón y Lino",
-    care: "Lavar a mano o en ciclo delicado, colgar para secar.",
-    hint: "striped dress",
-    storeId: "store1",
-  },
-  {
-    id: "5",
-    name: "Camiseta Básica Gris",
-    price: 19.99,
-    imageUrl:
-      "https://myspringfield.com/dw/image/v2/AAYL_PRD/on/demandware.static/-/Sites-gc-spf-master-catalog/default/dwecf64744/images/hi-res/P_680084145FM.jpg?sw=600&sh=900&sm=fit",
-    description: "Camiseta esencial de cuello redondo en gris jaspeado.",
-    category: "Camisas",
-    sizes: ["S", "M", "L", "XL"],
-    stock: 35,
-    rating: 4.3,
-    reviews: 150,
-    material: "60% Algodón, 40% Poliéster",
-    care: "Lavar a máquina.",
-    hint: "grey t-shirt",
-    storeId: "store1",
-  },
-  {
-    id: "6",
-    name: "Jeans Lavado Oscuro",
-    price: 49.99,
-    imageUrl: "https://ss849.suburbia.com.mx/xl/5010687111.jpg",
-    description: "Jeans de corte recto con un lavado oscuro clásico.",
-    category: "Pantalones",
-    sizes: ["32W/30L", "32W/32L", "34W/32L"],
-    stock: 22,
-    rating: 4.4,
-    reviews: 90,
-    material: "100% Algodón",
-    care: "Lavar del revés.",
-    hint: "dark jeans",
-  },
-  {
-    id: "7",
-    name: "Vestido Estampado Floral",
-    price: 62.0,
-    imageUrl:
-      "https://erivel.mx/wp-content/uploads/2024/03/VESTIDO-FLORAL-1.webp",
-    description: "Vestido ligero con estampado floral, ideal para primavera.",
-    category: "Vestidos",
-    sizes: ["S", "M", "L"],
-    stock: 8,
-    rating: 4.7,
-    reviews: 110,
-    material: "100% Viscosa",
-    care: "Lavar a mano.",
-    hint: "floral dress",
-  },
-  {
-    id: "8",
-    name: "Gorro de Lana Teal",
-    price: 22.0,
-    imageUrl:
-      "https://i.etsystatic.com/7558906/r/il/0d3368/2131357407/il_570xN.2131357407_a3p9.jpg",
-    description: "Gorro de punto cálido en color teal.",
-    category: "Accesorios",
-    sizes: ["Talla Única"],
-    stock: 30,
-    rating: 4.9,
-    reviews: 180,
-    material: "100% Lana Merino",
-    care: "Lavar a mano.",
-    hint: "teal beanie",
-  },
-  {
-    id: "9",
-    name: "Camisa de Franela a Cuadros",
-    price: 35.0,
-    imageUrl:
-      "https://i.etsystatic.com/35566366/r/il/9281d3/5173059999/il_fullxfull.5173059999_tslo.jpg",
-    description: "Camisa de franela suave y cálida con patrón a cuadros.",
-    category: "Camisas",
-    sizes: ["M", "L", "XL"],
-    stock: 15,
-    rating: 4.5,
-    reviews: 135,
-    material: "100% Algodón Cepillado",
-    care: "Lavar a máquina.",
-    hint: "flannel shirt",
-  },
-  {
-    id: "10",
-    name: "Pantalones Cargo Beige",
-    price: 42.0,
-    imageUrl:
-      "https://calvinkleinmx.vteximg.com.br/arquivos/ids/485180-400-436/J30J326829RAE-PLANO.jpg?v=638570222839270000",
-    description: "Pantalones cargo prácticos y resistentes en color beige.",
-    category: "Pantalones",
-    sizes: ["M", "L", "XL"],
-    stock: 28,
-    rating: 4.1,
-    reviews: 75,
-    material: "100% Algodón Ripstop",
-    care: "Lavar a máquina.",
-    hint: "beige cargo",
-  },
-  {
-    id: "13",
-    name: "Zapatillas Deportivas Blancas",
-    price: 75.0,
-    imageUrl:
-      "https://www.innvictus.com/medias/IN-DD8959-100-1.jpg?context=bWFzdGVyfGltYWdlc3w3NDA3MnxpbWFnZS9qcGVnfGFXMWhaMlZ6TDJnNVppOW9PVFV2TVRFeU1UWTRNRGsxT1RBNE1UUXVhbkJufGVkZDg0ZmRkNDhmNWNjMDhiOWVkODkwOGEzNWVhYzgyZjIyM2VlOTViODk1YWMzMjRiZWU1NmNmYWE1NGMwZjk",
-    description:
-      "Zapatillas blancas versátiles, ideales para cualquier ocasión.",
-    category: "Zapatos",
-    sizes: ["40", "41", "42", "43", "44"],
-    stock: 14,
-    rating: 4.7,
-    reviews: 150,
-    material: "Cuero Sintético y Malla",
-    care: "Limpiar con paño húmedo.",
-    hint: "white sneakers",
-  },
-  {
-    id: "14",
-    name: "Botines de Cuero Negros",
-    price: 95.0,
-    imageUrl: "https://m.media-amazon.com/images/I/71gHHJV+6DL._AC_SY695_.jpg",
-    description: "Botines elegantes de cuero negro con cierre lateral.",
-    category: "Zapatos",
-    sizes: ["39", "40", "41", "42"],
-    stock: 18,
-    rating: 4.6,
-    reviews: 110,
-    material: "100% Cuero",
-    care: "Usar productos específicos para cuero.",
-    hint: "black boots",
-  },
-  {
-    id: "15",
-    name: "Body de Bebé (Pack 3)",
-    price: 25.0,
-    imageUrl: "https://ss421.liverpool.com.mx/xl/1094922711.jpg",
-    description: "Pack de 3 bodies de algodón suave para bebé.",
-    category: "Ropa de Bebé",
-    sizes: ["0-3m", "3-6m", "6-9m"],
-    stock: 50,
-    rating: 4.9,
-    reviews: 250,
-    material: "100% Algodón",
-    care: "Lavar a máquina con agua tibia.",
-    hint: "baby bodysuit",
-  },
-  {
-    id: "16",
-    name: "Pijama de Bebé Estampado",
-    price: 18.0,
-    imageUrl: "https://m.media-amazon.com/images/I/A1iLSIggjrL._AC_SX679_.jpg",
-    description: "Pijama cómodo con estampado divertido para bebé.",
-    category: "Ropa de Bebé",
-    sizes: ["6-9m", "9-12m", "12-18m"],
-    stock: 38,
-    rating: 4.8,
-    reviews: 190,
-    material: "100% Algodón Orgánico",
-    care: "Lavar a máquina con agua fría.",
-    hint: "baby pajamas",
-  },
-  {
-    id: "17",
-    name: "Sudadera con Capucha Gris",
-    price: 48.0,
-    imageUrl:
-      "https://http2.mlstatic.com/D_NQ_NP_2X_673451-MLM83876587551_042025-F-sudadera-con-capucha-para-hombre-casual-holgada-deportiva.webp",
-    description: "Sudadera clásica con capucha en gris jaspeado.",
-    category: "Sudaderas",
-    sizes: ["S", "M", "L", "XL"],
-    stock: 20,
-    rating: 4.5,
-    reviews: 140,
-    material: "80% Algodón, 20% Poliéster",
-    care: "Lavar a máquina.",
-    hint: "grey hoodie",
-  },
-  {
-    id: "18",
-    name: "Sudadera Azul Marino",
-    price: 40.0,
-    imageUrl: "https://m.media-amazon.com/images/I/51-TjFXSvpL._AC_SX679_.jpg",
-    description: "Sudadera básica de cuello redondo en azul marino.",
-    category: "Sudaderas",
-    sizes: ["S", "M", "L"],
-    stock: 16,
-    rating: 4.4,
-    reviews: 125,
-    material: "70% Algodón, 30% Poliéster",
-    care: "Lavar a máquina.",
-    hint: "navy sweatshirt",
-  },
-  {
-    id: "19",
-    name: "Camiseta Niño Dinosaurio",
-    price: 15.0,
-    imageUrl:
-      "https://app.cuidadoconelperro.com.mx/media/catalog/product/1/_/1_23114.jpg",
-    description: "Camiseta divertida con estampado de dinosaurio para niño.",
-    category: "Ropa Infantil",
-    sizes: ["2A", "3A", "4A", "5A"],
-    stock: 32,
-    rating: 4.7,
-    reviews: 95,
-    material: "100% Algodón",
-    care: "Lavar a máquina.",
-    hint: "boys t-shirt",
-  },
-  {
-    id: "20",
-    name: "Pantalón Corto Niño Azul",
-    price: 20.0,
-    imageUrl:
-      "https://image.hm.com/assets/hm/52/e0/52e0856536c207a2b3dd2029c2f6c7dfe22c0e23.jpg",
-    description: "Pantalón corto cómodo y resistente para niño.",
-    category: "Ropa Infantil",
-    sizes: ["4A", "5A", "6A"],
-    stock: 24,
-    rating: 4.6,
-    reviews: 80,
-    material: "100% Algodón",
-    care: "Lavar a máquina.",
-    hint: "boys shorts",
-  },
-  {
-    id: "21",
-    name: "Vestido Niña Flores",
-    price: 30.0,
-    imageUrl: "https://m.media-amazon.com/images/I/618rnrVOSeL._AC_SX679_.jpg",
-    description: "Vestido ligero y fresco con estampado floral para niña.",
-    category: "Ropa Infantil",
-    sizes: ["4A", "5A", "6A", "7A"],
-    stock: 18,
-    rating: 4.8,
-    reviews: 115,
-    material: "100% Viscosa",
-    care: "Lavar a mano o ciclo delicado.",
-    hint: "girls dress",
-  },
-  {
-    id: "22",
-    name: "Leggings Niña Rayas",
-    price: 18.0,
-    imageUrl:
-      "https://ae-pic-a1.aliexpress-media.com/kf/S802c36831dc549688813d5324f2230a7L.jpg_960x960q75.jpg_.avif",
-    description: "Leggings cómodos y elásticos a rayas para niña.",
-    category: "Ropa Infantil",
-    sizes: ["5A", "6A", "7A", "8A"],
-    stock: 26,
-    rating: 4.7,
-    reviews: 100,
-    material: "95% Algodón, 5% Elastano",
-    care: "Lavar a máquina.",
-    hint: "girls leggings",
-  },
-];
+type UiProduct = {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  description?: string;
+  category?: string;
+  sizes: string[];
+  stock?: number;
+  material?: string;
+  care?: string;
+  hint?: string;
+  storeId?: string;
+  rating?: number;
+  reviews?: number;
+  hasDelivery?: boolean;
+};
+// removed local mock products
 
 export default function ProductDetailPage({
   params,
@@ -370,7 +62,9 @@ export default function ProductDetailPage({
   const { addToCart } = useCart(); // Get addToCart from context
   const router = useRouter(); // Use router for back navigation
   const resolvedParams = use(params);
-  const product = products.find((p) => p.id === resolvedParams.id);
+  const pid = Number(resolvedParams.id);
+  const [product, setProduct] = useState<UiProduct | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     undefined,
   );
@@ -379,21 +73,103 @@ export default function ProductDetailPage({
   const [ratingsTick, setRatingsTick] = useState<number>(0);
   const [ratingComment, setRatingComment] = useState<string>("");
 
-  // Set default size when product loads
   useEffect(() => {
     if (product?.sizes && product.sizes.length > 0) {
       setSelectedSize(product.sizes[0]);
     }
-    // Reset quantity to 1 when product changes
     setQuantity(1);
-  }, [product]); // Re-run when product changes
+  }, [product?.id]);
 
-  if (!product) {
+  useEffect(() => {
+    let canceled = false;
+    const toUiProduct = (p: Record<string, unknown>): UiProduct => ({
+      id: Number(p.id as number | string),
+      name: String(p.name ?? "Producto"),
+      price: Number(p.price as number | string),
+      imageUrl: (p.imageUrl as string) || undefined,
+      description: (p.description as string) || undefined,
+      category: (p.category as string) || undefined,
+      sizes:
+        typeof p.sizes === "string"
+          ? (JSON.parse(p.sizes as string) as string[])
+          : Array.isArray(p.sizes)
+          ? (p.sizes as string[])
+          : [],
+      stock: typeof p.stock === "number" ? (p.stock as number) : undefined,
+      material: (p.material as string) || undefined,
+      care: (p.care as string) || undefined,
+      hint: (p.hint as string) || undefined,
+      storeId: typeof p.storeId === "number" || typeof p.storeId === "string" ? String(p.storeId) : undefined,
+      rating: typeof p.rating === "number" ? (p.rating as number) : 4.5,
+      reviews: typeof p.reviews === "number" ? (p.reviews as number) : undefined,
+      hasDelivery: typeof p.hasDelivery === "boolean" ? (p.hasDelivery as boolean) : true,
+    });
+
+    const fetchProduct = async () => {
+      try {
+        const resp = await fetch(`/api/products/${pid}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          const ui = toUiProduct(data.product as Record<string, unknown>);
+          if (!canceled) {
+            setProduct(ui);
+            setLoading(false);
+          }
+        } else if (resp.status === 404) {
+          if (!canceled) {
+            setProduct(null);
+            setLoading(false);
+          }
+        } else {
+          if (!canceled) {
+            setProduct(null);
+            setLoading(false);
+          }
+        }
+      } catch {
+        if (!canceled) {
+          setProduct(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchProduct();
+
+    const es = new EventSource(`/api/products/stream`);
+    es.onmessage = (e) => {
+      try {
+        const payload = JSON.parse(e.data) as { type?: string; product?: Record<string, unknown>; id?: number };
+        if (payload?.type === "update" && payload.product && Number(payload.product.id as number | string) === pid) {
+          const ui = toUiProduct(payload.product);
+          setProduct(ui);
+        } else if (payload?.type === "delete" && Number(payload.id) === pid) {
+          toast({ title: "Producto eliminado", description: "Este producto fue eliminado." });
+          router.replace(`/products`);
+        }
+      } catch {}
+    };
+
+    return () => {
+      canceled = true;
+      es.close();
+    };
+  }, [pid]);
+
+  if (!loading && !product) {
     notFound();
   }
 
+  if (!product) {
+    return (
+      <div className="container mx-auto flex-1 py-12 px-4 md:px-6">
+        <div className="h-96 rounded-md bg-muted animate-pulse" />
+      </div>
+    );
+  }
+
   const handleAddToCart = () => {
-    if (product.sizes.length > 0 && !selectedSize) {
+    if (product && product.sizes.length > 0 && !selectedSize) {
       toast({
         variant: "destructive",
         title: "Seleccionar Talla",
@@ -403,13 +179,15 @@ export default function ProductDetailPage({
       return;
     }
 
+    if (!product) return;
     const itemToAdd: CartItem = {
-      id: parseInt(product.id, 10), // Ensure ID is a number
+      id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.imageUrl,
+      imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${pid}/600/600`,
       quantity: quantity,
-      size: selectedSize || "N/A", // Use selected size or 'N/A' if none needed/selected
+      size: selectedSize || "N/A",
+      storeId: product.storeId,
     };
 
     addToCart(itemToAdd); // Add to global cart state
@@ -429,6 +207,8 @@ export default function ProductDetailPage({
     router.back(); // Navigate to the previous page
   };
 
+  const stock = product.stock ?? 0;
+
   return (
     <div className="container mx-auto flex-1 py-12 px-4 md:px-6">
       {/* Back Button */}
@@ -447,19 +227,18 @@ export default function ProductDetailPage({
           <Card className="overflow-hidden border sticky top-20 relative">
             {/* Favorites overlay near image */}
             <div className="absolute top-2 left-2 z-10">
-              {/** @ts-ignore */}
               <FavoriteButton
                 item={{
                   id: String(product.id),
                   name: product.name,
-                  imageUrl: product.imageUrl,
+                  imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`,
                   price: product.price,
                   category: product.category,
-                }}
+                } as FavoriteItem}
               />
             </div>
             <Image
-              src={product.imageUrl}
+              src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`}
               alt={`Imagen de ${product.name}`}
               width={600}
               height={800}
@@ -479,16 +258,16 @@ export default function ProductDetailPage({
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${i < Math.floor((getAverage(product.id) ?? product.rating ?? 0)) ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    ({getRatings(product.id).length || (product.reviews ?? 0)} reseñas)
-                  </span>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${i < Math.floor((getAverage(String(product.id)) ?? product.rating ?? 0)) ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  ({getRatings(String(product.id)).length || (product.reviews ?? 0)} reseñas)
+                </span>
                 </div>
                 <p className="text-3xl font-semibold text-primary">
                   ${product.price.toFixed(2)} MXN
@@ -498,8 +277,8 @@ export default function ProductDetailPage({
                 <span className="text-sm font-medium text-muted-foreground">
                   Stock disponible:
                 </span>
-                <span className={`text-sm font-semibold ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
-                  {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
+                <span className={`text-sm font-semibold ${stock > 10 ? 'text-green-600' : stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  {stock > 0 ? `${stock} unidades` : 'Agotado'}
                 </span>
               </div>
               <Card className="bg-secondary/50 border-none shadow-none">
@@ -623,7 +402,7 @@ export default function ProductDetailPage({
           </h2>
           <Card className="border shadow-none">
             <CardContent className="p-6">
-              {canCurrentUserRate(product.id) ? (
+              {canCurrentUserRate(String(product.id)) ? (
                 <div className="space-y-4">
                   <p className="font-medium">Tu calificación</p>
                   <div className="flex items-center gap-2">
@@ -648,8 +427,8 @@ export default function ProductDetailPage({
                     onClick={() => {
                       const stars = Math.max(1, Math.min(5, ratingsTick));
                       const comment = ratingComment.trim() ? ratingComment.trim() : undefined;
-                      const res = addOrUpdateRating(product.id, stars, comment, {
-                        storeId: (product as any).storeId,
+                      const res = addOrUpdateRating(String(product.id), stars, comment, {
+                        storeId: (product as { storeId?: string }).storeId,
                         productName: product.name,
                         productLink: `/products/${product.id}`,
                       });
@@ -674,9 +453,9 @@ export default function ProductDetailPage({
 
               <Separator />
 
-              {getRatings(product.id).length > 0 ? (
+              {getRatings(String(product.id)).length > 0 ? (
                 <div className="space-y-4">
-                  {getRatings(product.id).slice(0, 5).map((r, idx) => (
+                  {getRatings(String(product.id)).slice(0, 5).map((r, idx) => (
                     <div key={idx} className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">

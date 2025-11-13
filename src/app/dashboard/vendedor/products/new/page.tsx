@@ -45,16 +45,26 @@ export default function NewProductPage() {
     
     try {
       setIsLoading(true);
-      
-      // Simulación de creación de producto
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Producto creado",
-        description: "El producto ha sido creado correctamente",
+      const payload = {
+        userEmail: user?.email,
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        stock: parseInt(formData.stock || "0", 10),
+        imageUrl: formData.imageUrl,
+        status: "Activo",
+      };
+      const resp = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-      
-      router.push("/dashboard/vendedor/products");
+      if (resp.ok) {
+        toast({ title: "Producto creado", description: "El producto ha sido creado correctamente" });
+        router.push("/dashboard/vendedor/products");
+      } else {
+        toast({ title: "Error", description: "No se pudo crear el producto", variant: "destructive" });
+      }
     } catch (error) {
       console.error("Error al crear producto:", error);
       toast({

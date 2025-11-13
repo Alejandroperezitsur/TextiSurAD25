@@ -28,306 +28,19 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import type { CartItem } from "@/types/cart";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import type { FavoriteItem } from "@/context/FavoritesContext";
 
-// Updated product data with real product information
-const allProductsFull = [
-  {
-    id: "1",
-    name: "Camisa Clásica Teal",
-    price: 29.99,
-    imageUrl:
-      "https://i.etsystatic.com/6777526/r/il/b079af/4824317243/il_570xN.4824317243_nsi7.jpg",
-    description:
-      "Una camisa cómoda y elegante en nuestro color teal característico. Hecha de 100% algodón orgánico.",
-    category: "Camisas",
-    sizes: ["S", "M", "L", "XL"],
-    rating: 4.5,
-    reviews: 120,
-    material: "100% Algodón Orgánico",
-    care: "Lavar a máquina con agua fría, secar en secadora a baja temperatura.",
-    hint: "teal shirt",
-  },
-  {
-    id: "2",
-    name: "Jeans Cómodos Grises",
-    price: 45.5,
-    imageUrl:
-      "https://pantalonesdemezclilla.mx/cdn/shop/files/Regular-Mom-Jeans-Gris-Para-Hombre_1_9d1541b8-cbda-46af-9395-a597fadd6194.jpg?v=1727668588&width=1445",
-    description:
-      "Jeans grises duraderos y suaves, perfectos para el uso diario. Diseño clásico de cinco bolsillos.",
-    category: "Pantalones",
-    sizes: ["30W/32L", "32W/32L", "34W/34L"],
-    rating: 4.2,
-    reviews: 85,
-    material: "98% Algodón, 2% Elastano",
-    care: "Lavar a máquina con colores similares, no usar lejía.",
-    hint: "grey jeans",
-  },
-  {
-    id: "3",
-    name: "Bufanda Amarilla Mostaza",
-    price: 15.0,
-    imageUrl:
-      "https://i.etsystatic.com/8658679/r/il/f2ce25/2845568138/il_570xN.2845568138_r82f.jpg",
-    description:
-      "Añade un toque de color con esta suave bufanda amarilla mostaza. Ligera y versátil.",
-    category: "Accesorios",
-    sizes: ["Talla Única"],
-    rating: 4.8,
-    reviews: 210,
-    material: "100% Acrílico Suave",
-    care: "Lavar a mano con agua fría, secar al aire.",
-    hint: "mustard scarf",
-  },
-  {
-    id: "4",
-    name: "Vestido Rayado Teal",
-    price: 55.0,
-    imageUrl:
-      "https://shasa.com/cdn/shop/files/2403378111_1.jpg?v=1718325587&width=3840",
-    category: "Vestidos",
-    description:
-      "Elegante vestido a rayas en teal y blanco. Perfecto para salidas de verano.",
-    sizes: ["XS", "S", "M"],
-    rating: 4.6,
-    reviews: 95,
-    material: "Mezcla de Rayón y Lino",
-    care: "Lavar a mano o en ciclo delicado, colgar para secar.",
-    hint: "striped dress",
-  },
-  {
-    id: "5",
-    name: "Camiseta Básica Gris",
-    price: 19.99,
-    imageUrl:
-      "https://myspringfield.com/dw/image/v2/AAYL_PRD/on/demandware.static/-/Sites-gc-spf-master-catalog/default/dwecf64744/images/hi-res/P_680084145FM.jpg?sw=600&sh=900&sm=fit",
-    description: "Camiseta esencial de cuello redondo en gris jaspeado.",
-    category: "Camisas",
-    sizes: ["S", "M", "L", "XL"],
-    rating: 4.3,
-    reviews: 150,
-    material: "60% Algodón, 40% Poliéster",
-    care: "Lavar a máquina.",
-    hint: "grey t-shirt",
-  },
-  {
-    id: "6",
-    name: "Jeans Lavado Oscuro",
-    price: 49.99,
-    imageUrl: "https://ss849.suburbia.com.mx/xl/5010687111.jpg",
-    description: "Jeans de corte recto con un lavado oscuro clásico.",
-    category: "Pantalones",
-    sizes: ["32W/30L", "32W/32L", "34W/32L"],
-    rating: 4.4,
-    reviews: 90,
-    material: "100% Algodón",
-    care: "Lavar del revés.",
-    hint: "dark jeans",
-  },
-  {
-    id: "7",
-    name: "Vestido Estampado Floral",
-    price: 62.0,
-    imageUrl:
-      "https://erivel.mx/wp-content/uploads/2024/03/VESTIDO-FLORAL-1.webp",
-    description: "Vestido ligero con estampado floral, ideal para primavera.",
-    category: "Vestidos",
-    sizes: ["S", "M", "L"],
-    rating: 4.7,
-    reviews: 110,
-    material: "100% Viscosa",
-    care: "Lavar a mano.",
-    hint: "floral dress",
-  },
-  {
-    id: "8",
-    name: "Gorro de Lana Teal",
-    price: 22.0,
-    imageUrl:
-      "https://i.etsystatic.com/7558906/r/il/0d3368/2131357407/il_570xN.2131357407_a3p9.jpg",
-    description: "Gorro de punto cálido en color teal.",
-    category: "Accesorios",
-    sizes: ["Talla Única"],
-    rating: 4.9,
-    reviews: 180,
-    material: "100% Lana Merino",
-    care: "Lavar a mano.",
-    hint: "teal beanie",
-  },
-  {
-    id: "9",
-    name: "Camisa de Franela a Cuadros",
-    price: 35.0,
-    imageUrl:
-      "https://i.etsystatic.com/35566366/r/il/9281d3/5173059999/il_fullxfull.5173059999_tslo.jpg",
-    description: "Camisa de franela suave y cálida con patrón a cuadros.",
-    category: "Camisas",
-    sizes: ["M", "L", "XL"],
-    rating: 4.5,
-    reviews: 135,
-    material: "100% Algodón Cepillado",
-    care: "Lavar a máquina.",
-    hint: "flannel shirt",
-  },
-  {
-    id: "10",
-    name: "Pantalones Cargo Beige",
-    price: 42.0,
-    imageUrl:
-      "https://calvinkleinmx.vteximg.com.br/arquivos/ids/485180-400-436/J30J326829RAE-PLANO.jpg?v=638570222839270000",
-    description: "Pantalones cargo prácticos y resistentes en color beige.",
-    category: "Pantalones",
-    sizes: ["M", "L", "XL"],
-    rating: 4.1,
-    reviews: 75,
-    material: "100% Algodón Ripstop",
-    care: "Lavar a máquina.",
-    hint: "beige cargo",
-  },
-  {
-    id: "13",
-    name: "Zapatillas Deportivas Blancas",
-    price: 75.0,
-    imageUrl: "https://picsum.photos/seed/whitesneakers/400/500",
-    category: "Zapatos",
-    sizes: ["40", "41", "42", "43", "44"],
-    rating: 4.7,
-    reviews: 150,
-    material: "Cuero Sintético y Malla",
-    care: "Limpiar con paño húmedo.",
-    hint: "white sneakers",
-  },
-  {
-    id: "14",
-    name: "Botines de Cuero Negros",
-    price: 95.0,
-    imageUrl: "https://picsum.photos/seed/blackboots/400/500",
-    category: "Zapatos",
-    sizes: ["39", "40", "41", "42"],
-    rating: 4.6,
-    reviews: 110,
-    material: "100% Cuero",
-    care: "Usar productos específicos para cuero.",
-    hint: "black boots",
-  },
-  {
-    id: "15",
-    name: "Body de Bebé (Pack 3)",
-    price: 25.0,
-    imageUrl: "https://picsum.photos/seed/babybodysuit/400/500",
-    category: "Ropa de Bebé",
-    sizes: ["0-3m", "3-6m", "6-9m"],
-    rating: 4.9,
-    reviews: 250,
-    material: "100% Algodón",
-    care: "Lavar a máquina con agua tibia.",
-    hint: "baby bodysuit",
-  },
-  {
-    id: "16",
-    name: "Pijama de Bebé Estampado",
-    price: 18.0,
-    imageUrl: "https://picsum.photos/seed/babypajamas/400/500",
-    category: "Ropa de Bebé",
-    sizes: ["6-9m", "9-12m", "12-18m"],
-    rating: 4.8,
-    reviews: 190,
-    material: "100% Algodón Orgánico",
-    care: "Lavar a máquina con agua fría.",
-    hint: "baby pajamas",
-  },
-  {
-    id: "17",
-    name: "Sudadera con Capucha Gris",
-    price: 48.0,
-    imageUrl: "https://picsum.photos/seed/greyhoodie/400/500",
-    category: "Sudaderas",
-    sizes: ["S", "M", "L", "XL"],
-    rating: 4.5,
-    reviews: 140,
-    material: "80% Algodón, 20% Poliéster",
-    care: "Lavar a máquina.",
-    hint: "grey hoodie",
-  },
-  {
-    id: "18",
-    name: "Sudadera Azul Marino",
-    price: 40.0,
-    imageUrl: "https://picsum.photos/seed/navysweatshirt/400/500",
-    category: "Sudaderas",
-    sizes: ["S", "M", "L"],
-    rating: 4.4,
-    reviews: 125,
-    material: "70% Algodón, 30% Poliéster",
-    care: "Lavar a máquina.",
-    hint: "navy sweatshirt",
-  },
-  {
-    id: "19",
-    name: "Camiseta Niño Dinosaurio",
-    price: 15.0,
-    imageUrl: "https://picsum.photos/seed/boystshirt/400/500",
-    category: "Ropa Infantil",
-    sizes: ["2A", "3A", "4A", "5A"],
-    rating: 4.7,
-    reviews: 95,
-    material: "100% Algodón",
-    care: "Lavar a máquina.",
-    hint: "boys t-shirt",
-  },
-  {
-    id: "20",
-    name: "Pantalón Corto Niño Azul",
-    price: 20.0,
-    imageUrl: "https://picsum.photos/seed/boysshorts/400/500",
-    category: "Ropa Infantil",
-    sizes: ["4A", "5A", "6A"],
-    rating: 4.6,
-    reviews: 80,
-    material: "100% Algodón",
-    care: "Lavar a máquina.",
-    hint: "boys shorts",
-  },
-  {
-    id: "21",
-    name: "Vestido Niña Flores",
-    price: 30.0,
-    imageUrl: "https://picsum.photos/seed/girlsdress/400/500",
-    category: "Ropa Infantil",
-    sizes: ["4A", "5A", "6A", "7A"],
-    rating: 4.8,
-    reviews: 115,
-    material: "100% Viscosa",
-    care: "Lavar a mano o ciclo delicado.",
-    hint: "girls dress",
-  },
-  {
-    id: "22",
-    name: "Leggings Niña Rayas",
-    price: 18.0,
-    imageUrl: "https://picsum.photos/seed/girlsleggings/400/500",
-    category: "Ropa Infantil",
-    sizes: ["5A", "6A", "7A", "8A"],
-    rating: 4.7,
-    reviews: 100,
-    material: "95% Algodón, 5% Elastano",
-    care: "Lavar a máquina.",
-    hint: "girls leggings",
-  },
-];
-
-// Map to the structure expected by the catalog page
-const allProducts = allProductsFull.map((p) => ({
-  id: parseInt(p.id, 10), // Convert id to number for consistency with cart
-  name: p.name,
-  price: p.price,
-  imageUrl: p.imageUrl,
-  category: p.category,
-  size: p.sizes[0] || "Talla Única", // Display primary size
-  hint: p.hint,
-  rating: p.rating ?? 4.5,
-  hasDelivery: true,
-}));
+type CatalogProduct = {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  category?: string;
+  sizes?: string[];
+  hint?: string;
+  rating?: number;
+  hasDelivery?: boolean;
+};
 
 const categories = [
   "Todos",
@@ -409,6 +122,7 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
 
   useEffect(() => {
     if (!searchParams) return;
@@ -424,7 +138,7 @@ export default function ProductsPage() {
     setSelectedSize(currentSize);
     setMinPrice(currentMinPrice);
     setMaxPrice(currentMaxPrice);
-  }, [searchParams?.toString()]); // Depend on searchParams.toString()
+  }, [searchParams]);
 
   useEffect(() => {
     setHasActiveFilters(
@@ -435,21 +149,62 @@ export default function ProductsPage() {
     );
   }, [selectedCategory, selectedSize, minPrice, maxPrice]);
 
-  const filteredProducts = allProducts.filter((product) => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const resp = await fetch(`/api/products`);
+        if (resp.ok) {
+          const data = await resp.json();
+          const list: CatalogProduct[] = (data.products || []).map((p: {
+            id: number | string;
+            name: string;
+            price: number | string;
+            imageUrl?: string;
+            category?: string;
+            sizes?: string | string[];
+            hint?: string;
+            rating?: number;
+            hasDelivery?: boolean;
+          }) => ({
+            id: Number(p.id),
+            name: String(p.name),
+            price: Number(p.price),
+            imageUrl: p.imageUrl,
+            category: p.category,
+            sizes:
+              typeof p.sizes === "string"
+                ? (JSON.parse(p.sizes) as string[])
+                : Array.isArray(p.sizes)
+                ? p.sizes
+                : [],
+            hint: p.hint,
+            rating: typeof p.rating === "number" ? p.rating : 4.5,
+            hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
+          }));
+          setProducts(list);
+        } else {
+          setProducts([]);
+        }
+      } catch {
+        setProducts([]);
+      }
+    };
+    fetchProducts();
+    const es = new EventSource(`/api/products/stream`);
+    es.onmessage = () => fetchProducts();
+    return () => { es.close(); };
+  }, []);
+
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesCategory =
       selectedCategory === "Todos" || product.category === selectedCategory;
 
-    // For size matching, check if the product is in allProductsFull and if any of its sizes match selectedSize
-    // This requires finding the full product details to access its `sizes` array.
-    const fullProductDetails = allProductsFull.find(
-      (p) => p.id === product.id.toString(),
-    );
     const matchesSize =
       selectedSize === "Todas" ||
-      (fullProductDetails && fullProductDetails.sizes.includes(selectedSize));
+      (Array.isArray(product.sizes) && product.sizes.includes(selectedSize));
 
     const productPriceNum = product.price;
     const matchesMinPrice =
@@ -470,21 +225,17 @@ export default function ProductsPage() {
     );
   });
 
-  const handleAddToCart = (product: (typeof allProducts)[0]) => {
-    // Determine the actual size to add. If 'Talla Única' is selected or product has only one, use that.
-    // For products with multiple sizes where a specific one isn't selected via filter, default to first.
-    // This logic might need refinement based on UX for adding from product list vs detail page.
+  const handleAddToCart = (product: CatalogProduct) => {
     const sizeToAdd =
-      selectedSize !== "Todas" && product.size === selectedSize
+      selectedSize !== "Todas" && Array.isArray(product.sizes) && product.sizes.includes(selectedSize)
         ? selectedSize
-        : allProductsFull.find((p) => p.id === product.id.toString())
-            ?.sizes[0] || "N/A";
+        : (Array.isArray(product.sizes) && product.sizes[0]) || "N/A";
 
     const itemToAdd: CartItem = {
       id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.imageUrl,
+      imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`,
       quantity: 1,
       size: sizeToAdd,
     };
@@ -680,7 +431,7 @@ export default function ProductsPage() {
                     aria-label={`Ver ${product.name}`}
                   >
                     <Image
-                      src={product.imageUrl}
+                      src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`}
                       alt={`Imagen de ${product.name}`}
                       width={400}
                       height={500}
@@ -690,26 +441,22 @@ export default function ProductsPage() {
                   </Link>
                   {/* Favorites overlay */}
                   <div className="absolute top-2 left-2">
-                    {/* Pass minimal product snapshot for favorites */}
-                    {/** @ts-ignore */}
                     <FavoriteButton
                       item={{
                         id: String(product.id),
                         name: product.name,
-                        imageUrl: product.imageUrl,
+                        imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`,
                         price: product.price,
-                        category: product.category,
-                      }}
+                        category: product.category || "",
+                      } as FavoriteItem}
                     />
                   </div>
                   {/* Display primary size or indication of multiple sizes if not filtering by a specific one */}
                   <div className="absolute top-2 right-2 bg-background/80 text-foreground px-2 py-1 rounded text-xs font-medium shadow">
-                    {selectedSize !== "Todas" && product.size === selectedSize
-                      ? product.size
-                      : allProductsFull.find(
-                            (p) => p.id === product.id.toString(),
-                          )?.sizes.length === 1
-                        ? product.size
+                    {selectedSize !== "Todas" && Array.isArray(product.sizes) && product.sizes.includes(selectedSize)
+                      ? selectedSize
+                      : Array.isArray(product.sizes) && product.sizes.length === 1
+                        ? product.sizes[0] || "N/A"
                         : "Varias tallas"}
                   </div>
                 </CardHeader>
@@ -718,15 +465,15 @@ export default function ProductsPage() {
                     {product.name}
                   </CardTitle>
                   <CardDescription className="text-sm text-muted-foreground">
-                    {product.category}
+                    {product.category || ""}
                   </CardDescription>
                   <div className="mt-2 text-xs text-muted-foreground">
-                    <span className="font-medium">Tallas:</span> {allProductsFull.find(p => p.id === product.id.toString())?.sizes.join(", ") || "N/A"}
+                    <span className="font-medium">Tallas:</span> {Array.isArray(product.sizes) ? product.sizes.join(", ") : "N/A"}
                   </div>
                   <div className="mt-2 flex items-center gap-3 text-sm">
                     <span className="flex items-center text-yellow-500">
                       <Star className="h-4 w-4 mr-1" />
-                      {product.rating.toFixed(1)}
+                      {(product.rating ?? 4.5).toFixed(1)}
                     </span>
                     <span className="flex items-center text-muted-foreground">
                       <Truck className="h-4 w-4 mr-1" />

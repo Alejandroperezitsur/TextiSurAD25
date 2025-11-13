@@ -5,6 +5,7 @@ interface StoreAttributes {
   id: number;
   name: string;
   description?: string;
+  city: string;
   address?: string;
   phone?: string;
   email?: string;
@@ -19,6 +20,7 @@ type StoreCreationAttributes = Optional<
   StoreAttributes,
   | "id"
   | "description"
+  | "city"
   | "address"
   | "phone"
   | "email"
@@ -34,6 +36,7 @@ class Store
   declare id: number;
   declare name: string;
   declare description?: string;
+  declare city: string;
   declare address?: string;
   declare phone?: string;
   declare email?: string;
@@ -57,6 +60,10 @@ Store.init(
     },
     description: {
       type: DataTypes.TEXT,
+    },
+    city: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
     },
     address: {
       type: DataTypes.STRING(255),

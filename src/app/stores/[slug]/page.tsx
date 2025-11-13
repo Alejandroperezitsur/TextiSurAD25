@@ -5,23 +5,39 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Clock, MapPin, Truck, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import type { CartItem } from "@/types/cart";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import type { FavoriteItem } from "@/context/FavoritesContext";
 
 // Importamos los datos de tiendas y productos desde la página principal
 // En una aplicación real, estos datos vendrían de una API
-import { registeredStores, allProducts } from "../../page";
+
+type UiStore = {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl: string;
+  slug: string;
+  dataAiHint?: string;
+  categories: string[];
+};
+
+type UiProduct = {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  category?: string;
+  sizes: string[];
+  hint?: string;
+  storeId: string;
+  rating?: number;
+  hasDelivery?: boolean;
+};
 
 export default function StorePage() {
   const params = useParams();
@@ -29,8 +45,8 @@ export default function StorePage() {
   const slug = params?.slug as string;
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const [store, setStore] = useState<any>(null);
-  const [storeProducts, setStoreProducts] = useState<any[]>([]);
+  const [store, setStore] = useState<UiStore | null>(null);
+  const [storeProducts, setStoreProducts] = useState<UiProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
 
@@ -38,18 +54,50 @@ export default function StorePage() {
     // Simulamos una carga de datos
     setLoading(true);
     
-    // Encontramos la tienda por su slug
-    const foundStore = registeredStores.find((s) => s.slug === slug);
-    
-    if (foundStore) {
-      setStore(foundStore);
-      
-      // Filtramos los productos por tienda
-      const products = allProducts.filter(
-        (product) => product.storeId === foundStore.id
-      );
-      
-      setStoreProducts(products);
+    const loadStore = async () => {
+      // Intentar obtener tienda desde la base de datos por slug
+      try {
+        const resp = await fetch(`/api/stores/by-slug?slug=${encodeURIComponent(slug)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          const s = data.store;
+          const uiStore: UiStore = {
+            id: String(s.id),
+            name: s.name,
+            description: s.description,
+            imageUrl: s.logo || "https://picsum.photos/seed/store/600/400",
+            slug: s.slug,
+            dataAiHint: "store",
+            categories: [],
+          };
+          setStore(uiStore);
+          const pResp = await fetch(`/api/products?storeSlug=${encodeURIComponent(s.slug)}`);
+          if (pResp.ok) {
+            const pdata = await pResp.json();
+            const list: UiProduct[] = (pdata.products || []).map((p: Record<string, unknown>) => ({
+              id: Number(p.id as number | string),
+              name: String(p.name ?? "Producto"),
+              price: Number(p.price as number | string),
+              imageUrl: (p.imageUrl as string) || undefined,
+              category: (p.category as string) || undefined,
+              sizes: typeof p.sizes === "string" ? (JSON.parse(p.sizes as string) as string[]) : Array.isArray(p.sizes) ? (p.sizes as string[]) : [],
+              hint: (p.hint as string) || undefined,
+              storeId: String(uiStore.id),
+              rating: typeof p.rating === "number" ? (p.rating as number) : 4.5,
+              hasDelivery: typeof p.hasDelivery === "boolean" ? (p.hasDelivery as boolean) : true,
+            }));
+            setStoreProducts(list);
+          } else {
+            setStoreProducts([]);
+          }
+        } else {
+          setStore(null);
+          setStoreProducts([]);
+        }
+      } catch {
+        setStore(null);
+        setStoreProducts([]);
+      }
 
       // Determinar si la tienda pertenece al usuario actual
       const checkOwnership = async () => {
@@ -62,7 +110,7 @@ export default function StorePage() {
             if (resp.ok) {
               const data = await resp.json();
               const slugOwned = data?.store?.slug as string | undefined;
-              if (slugOwned && slugOwned === foundStore.slug) {
+              if (slugOwned && slugOwned === slug) {
                 setIsOwner(true);
               } else {
                 setIsOwner(false);
@@ -74,7 +122,7 @@ export default function StorePage() {
                 if (ls) {
                   const s = JSON.parse(ls);
                   const slugOwned = s?.slug as string | undefined;
-                  setIsOwner(Boolean(slugOwned && slugOwned === foundStore.slug));
+                  setIsOwner(Boolean(slugOwned && slugOwned === slug));
                 }
               } catch {}
             }
@@ -84,19 +132,26 @@ export default function StorePage() {
         }
       };
       checkOwnership();
-    }
-    
+    };
+    loadStore();
+    const es = new EventSource(`/api/products/stream`);
+    es.onmessage = () => {
+      loadStore();
+    };
     setLoading(false);
+    return () => {
+      es.close();
+    };
   }, [slug]);
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: UiProduct) => {
     const itemToAdd: CartItem = {
-      id: typeof product.id === 'number' ? product.id : parseInt(product.id, 10),
+      id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.imageUrl,
+      imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`,
       quantity: 1,
-      size: product.sizes[0] || "N/A", // Default to first size or N/A
+      size: product.sizes[0] ?? "N/A",
       storeId: product.storeId,
     };
     addToCart(itemToAdd);
@@ -151,7 +206,7 @@ export default function StorePage() {
               <Link href="/dashboard/vendedor/store/edit">Editar tienda</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard/vendedor/nuevo">Agregar producto</Link>
+              <Link href="/dashboard/vendedor/products/new">Agregar producto</Link>
             </Button>
           </div>
         )}
@@ -204,15 +259,14 @@ export default function StorePage() {
               <div className="relative aspect-square overflow-hidden">
                 {/* Favorites overlay */}
                 <div className="absolute top-2 left-2 z-10">
-                  {/** @ts-ignore */}
                   <FavoriteButton
                     item={{
                       id: String(product.id),
                       name: product.name,
-                      imageUrl: product.imageUrl,
+                      imageUrl: product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`,
                       price: product.price,
                       category: product.category,
-                    }}
+                    } as FavoriteItem}
                   />
                 </div>
                 {isOwner && (
@@ -229,7 +283,7 @@ export default function StorePage() {
                     : "N/A"}
                 </div>
                 <Image
-                  src={product.imageUrl}
+                  src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/600/600`}
                   alt={product.name}
                   fill
                   className="object-cover transition-all group-hover:scale-105"
