@@ -191,9 +191,7 @@ export default function CartPage() {
                 <Button
                   className="w-full btn-accent"
                   size="lg"
-                  onClick={() =>
-                    alert("Proceder al pago (funcionalidad pendiente)")
-                  }
+                  onClick={() => router.push("/checkout")}
                 >
                   Proceder al Pago
                 </Button>

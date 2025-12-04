@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { CartItem } from "@/types/cart";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import type { FavoriteItem } from "@/context/FavoritesContext";
+import { ProductQuickView } from "@/components/product-quick-view";
 
 type CatalogProduct = {
   id: number;
@@ -126,7 +127,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (!searchParams) return;
-    
+
     const currentSearch = searchParams.get("search") || "";
     const currentCategoryParam = searchParams.get("category");
     const currentSize = searchParams.get("size") || "Todas";
@@ -143,9 +144,9 @@ export default function ProductsPage() {
   useEffect(() => {
     setHasActiveFilters(
       selectedCategory !== "Todos" ||
-        selectedSize !== "Todas" ||
-        minPrice !== "" ||
-        maxPrice !== "",
+      selectedSize !== "Todas" ||
+      minPrice !== "" ||
+      maxPrice !== "",
     );
   }, [selectedCategory, selectedSize, minPrice, maxPrice]);
 
@@ -161,7 +162,7 @@ export default function ProductsPage() {
             name: String(p.name),
             price: Number(p.price),
             imageUrl: (() => {
-              const raw = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/,"") : "";
+              const raw = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/, "") : "";
               return raw || `https://picsum.photos/seed/product-${p.id}/600/600`;
             })(),
             category: p.category,
@@ -458,13 +459,16 @@ export default function ProductsPage() {
                       } as FavoriteItem}
                     />
                   </div>
-                  {/* Display primary size or indication of multiple sizes if not filtering by a specific one */}
-                  <div className="absolute top-2 right-2 bg-background/80 text-foreground px-2 py-1 rounded text-xs font-medium shadow">
-                    {selectedSize !== "Todas" && Array.isArray(product.sizes) && product.sizes.includes(selectedSize)
-                      ? selectedSize
-                      : Array.isArray(product.sizes) && product.sizes.length === 1
-                        ? product.sizes[0] || "N/A"
-                        : "Varias tallas"}
+                  <div className="absolute top-2 right-2 flex flex-col gap-2 items-end">
+                    {/* Display primary size or indication of multiple sizes if not filtering by a specific one */}
+                    <div className="bg-background/80 text-foreground px-2 py-1 rounded text-xs font-medium shadow">
+                      {selectedSize !== "Todas" && Array.isArray(product.sizes) && product.sizes.includes(selectedSize)
+                        ? selectedSize
+                        : Array.isArray(product.sizes) && product.sizes.length === 1
+                          ? product.sizes[0] || "N/A"
+                          : "Varias tallas"}
+                    </div>
+                    <ProductQuickView product={{ ...product, sizes: product.sizes || [] }} />
                   </div>
                 </CardHeader>
                 <CardContent className="p-4 flex-grow">

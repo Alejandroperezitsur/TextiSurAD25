@@ -84,7 +84,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                 href="/products"
                 className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5"
               >
-                PRODUCTOS TEST
+                Productos
               </Link>
               <Link
                 href="/#tiendas"

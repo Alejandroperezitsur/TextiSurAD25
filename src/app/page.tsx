@@ -44,6 +44,7 @@ import { useRef, useState, useEffect, cloneElement } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { ProductQuickView } from "@/components/product-quick-view";
 
 type ProductUI = { id: number; name: string; price: number; imageUrl?: string; category?: string; sizes: string[]; hint?: string; storeId: number; rating: number; hasDelivery: boolean; status?: "Activo" | "Inactivo"; stock?: number };
 type StoreUI = { id: number; name: string; description?: string; imageUrl?: string; slug: string; city?: string };
@@ -739,8 +740,11 @@ export default function HomePage() {
                       Ver tienda
                     </Button>
                   </div>
-                  <div className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
-                    Destacado
+                  <div className="absolute top-2 right-2 z-10 flex gap-2">
+                    <ProductQuickView product={product} />
+                    <div className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full flex items-center">
+                      Destacado
+                    </div>
                   </div>
                   <Image
                     src={product.imageUrl || `https://picsum.photos/seed/product-${product.id}/400/500`}
