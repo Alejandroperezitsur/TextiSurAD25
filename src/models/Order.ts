@@ -72,10 +72,4 @@ Order.init(
   }
 );
 
-User.hasMany(Order, { foreignKey: "userId", as: "orders" });
-Order.belongsTo(User, { foreignKey: "userId", as: "user" });
-
-Product.hasMany(Order, { foreignKey: "productId", as: "orders" });
-Order.belongsTo(Product, { foreignKey: "productId", as: "product" });
-
 export default Order;

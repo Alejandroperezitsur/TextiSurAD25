@@ -1,6 +1,5 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "@/lib/sequelize";
-import Store from "@/models/Store";
 
 interface ProductAttributes {
   id: number;
@@ -36,8 +35,7 @@ type ProductCreationAttributes = Optional<
 
 class Product
   extends Model<ProductAttributes, ProductCreationAttributes>
-  implements ProductAttributes
-{
+  implements ProductAttributes {
   declare id: number;
   declare name: string;
   declare description?: string;
@@ -120,8 +118,5 @@ Product.init(
     ],
   },
 );
-
-Store.hasMany(Product, { foreignKey: "storeId", as: "products" });
-Product.belongsTo(Store, { foreignKey: "storeId", as: "store" });
 
 export default Product;

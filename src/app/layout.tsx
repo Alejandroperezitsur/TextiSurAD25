@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { RatingsProvider } from "@/context/RatingsContext";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -82,7 +84,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                 href="/products"
                 className="transition-colors hover:text-primary text-foreground/80 px-3 py-2 rounded-md hover:bg-primary/5"
               >
-                Productos
+                PRODUCTOS TEST
               </Link>
               <Link
                 href="/#tiendas"
@@ -140,6 +142,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-end space-x-2 ml-auto">
             {" "}
             {/* Reduced space */}
+            <ModeToggle />
             <CartDisplay /> {/* Use the CartDisplay component */}
             {loading ? (
               // Skeleton/Loader while checking auth status
@@ -207,7 +210,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} h-full dark`}>
+    <html lang="es" suppressHydrationWarning>
       <head>
         <title>TextiSur - Tu Mercado Textil Local</title>
         <meta
@@ -217,19 +220,26 @@ export default function MainLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body
-        className="font-sans antialiased flex flex-col min-h-screen w-full"
+        className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen w-full`}
       >
-        <AuthProvider>
-          <CartProvider>
-            <NotificationsProvider>
-              <RatingsProvider>
-                <FavoritesProvider>
-                  <LayoutContent>{children}</LayoutContent>
-                </FavoritesProvider>
-              </RatingsProvider>
-            </NotificationsProvider>
-          </CartProvider>
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <CartProvider>
+              <NotificationsProvider>
+                <RatingsProvider>
+                  <FavoritesProvider>
+                    <LayoutContent>{children}</LayoutContent>
+                  </FavoritesProvider>
+                </RatingsProvider>
+              </NotificationsProvider>
+            </CartProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

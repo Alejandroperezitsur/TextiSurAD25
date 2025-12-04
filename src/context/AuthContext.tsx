@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
-      
+
       if (token) {
         try {
           // Aquí podrías hacer una petición a una API para validar el token
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           localStorage.removeItem("user");
         }
       }
-      
+
       setLoading(false);
     };
 
@@ -64,15 +64,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login = useCallback(async (email: string, password: string) => {
     try {
       setLoading(true);
-      const response = await axios.post("/api/login", { email, password });
-      
+      const response = await axios.post("/api/auth/login", { email, password });
+
       if (response.status === 200) {
         const { token, user: userData } = response.data;
-        
+
         // Guardar el token y la información del usuario
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(userData));
-        
+
         setUser(userData);
         router.push("/");
       }

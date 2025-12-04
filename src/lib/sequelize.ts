@@ -2,13 +2,13 @@ import { Sequelize } from "sequelize";
 
 // Configuración de Sequelize para conectarse a la base de datos local
 const sequelize = new Sequelize(
-  "textisur_db", // Nombre de la base de datos
-  "root", // Usuario
-  "root",// Contraseña
+  process.env.DB_NAME || "textisur_db",
+  process.env.DB_USER || "root",
+  process.env.DB_PASSWORD || "",
   {
-    host: "localhost", // Host local
+    host: process.env.DB_HOST || "localhost",
     dialect: "mysql",
-    logging: true, // Activamos el logging para desarrollo
+    logging: process.env.NODE_ENV === "development" ? console.log : false,
     pool: {
       max: 10,
       min: 0,

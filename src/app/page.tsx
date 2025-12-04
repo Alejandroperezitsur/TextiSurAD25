@@ -458,9 +458,9 @@ export default function HomePage() {
               setOwnerStoreSlug(st?.slug ?? null);
               setOwnerStoreId(typeof st?.id === "number" ? st.id : null);
             }
-          } catch {}
+          } catch { }
         }
-      } catch {}
+      } catch { }
     };
     fetchStore();
   }, [user, loading]);
@@ -475,42 +475,42 @@ export default function HomePage() {
         const storesMapped = storesData.map((s: any) => ({ id: Number(s.id), name: s.name, description: s.description, imageUrl: s.logo || `https://picsum.photos/seed/store-${s.id}/600/400`, slug: s.slug, city: s.city }));
         const productsMapped = Array.isArray(productsData)
           ? productsData.map((p: any) => ({
-              id: Number(p.id),
-              name: p.name,
-              price: Number(p.price),
-              imageUrl: (() => {
-                const raw = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/,"") : "";
-                return raw || `https://picsum.photos/seed/product-${p.id}/400/500`;
-              })(),
-              category: p.category,
-              sizes: (() => {
-                try {
-                  if (Array.isArray(p.sizes)) return p.sizes as string[];
-                  if (typeof p.sizes === "string") {
-                    const txt = p.sizes.trim();
-                    if (!txt) return [];
-                    // Try JSON first
-                    try {
-                      const parsed = JSON.parse(txt);
-                      return Array.isArray(parsed) ? parsed : [];
-                    } catch {
-                      // Fallback: comma separated list
-                      if (txt.includes(",")) return txt.split(",").map((s: string) => s.trim()).filter(Boolean);
-                      return [txt];
-                    }
+            id: Number(p.id),
+            name: p.name,
+            price: Number(p.price),
+            imageUrl: (() => {
+              const raw = typeof p.imageUrl === "string" ? p.imageUrl.trim().replace(/\)$/, "") : "";
+              return raw || `https://picsum.photos/seed/product-${p.id}/400/500`;
+            })(),
+            category: p.category,
+            sizes: (() => {
+              try {
+                if (Array.isArray(p.sizes)) return p.sizes as string[];
+                if (typeof p.sizes === "string") {
+                  const txt = p.sizes.trim();
+                  if (!txt) return [];
+                  // Try JSON first
+                  try {
+                    const parsed = JSON.parse(txt);
+                    return Array.isArray(parsed) ? parsed : [];
+                  } catch {
+                    // Fallback: comma separated list
+                    if (txt.includes(",")) return txt.split(",").map((s: string) => s.trim()).filter(Boolean);
+                    return [txt];
                   }
-                  return [];
-                } catch {
-                  return [];
                 }
-              })(),
-              hint: p.hint,
-              storeId: Number(p.storeId),
-              rating: typeof p.rating === "number" ? p.rating : 4.5,
-              hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
-              status: p.status,
-              stock: Number(p.stock),
-            })
+                return [];
+              } catch {
+                return [];
+              }
+            })(),
+            hint: p.hint,
+            storeId: Number(p.storeId),
+            rating: typeof p.rating === "number" ? p.rating : 4.5,
+            hasDelivery: typeof p.hasDelivery === "boolean" ? p.hasDelivery : true,
+            status: p.status,
+            stock: Number(p.stock),
+          })
           )
           : [];
         setRegisteredStores(storesMapped);
@@ -522,11 +522,11 @@ export default function HomePage() {
             .slice(0, 3)
         );
         setFilteredProducts(productsMapped);
-      } catch {}
+      } catch { }
     };
     fetchData();
   }, []);
-  
+
   // Filtrar productos cuando cambia la tienda seleccionada
   useEffect(() => {
     if (selectedStore) {
@@ -603,7 +603,7 @@ export default function HomePage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white/20 hover:text-white transition-all duration-300 hover:shadow-lg"
+                className="border-white text-white bg-transparent hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg"
                 onClick={() => {
                   if (user) {
                     router.push('/dashboard/vendedor');
@@ -857,7 +857,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      
+
       {/* Products by Store Section */}
       {selectedStore && (
         <section className="py-12 bg-accent/5">
@@ -866,14 +866,14 @@ export default function HomePage() {
               <h2 className="text-3xl font-bold tracking-tighter">
                 Productos de {registeredStores.find(store => store.id === selectedStore)?.name}
               </h2>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setSelectedStore(null)}
               >
                 Ver todos los productos
               </Button>
             </div>
-            
+
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8">
                 {filteredProducts.map((product) => (
