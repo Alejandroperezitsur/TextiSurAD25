@@ -13,7 +13,7 @@ import {
   ArrowLeft,
 } from "lucide-react"; // Added ArrowLeft
 import Image from "next/image";
- 
+
 import { notFound, useRouter } from "next/navigation"; // Added useRouter
 import { useState, useEffect } from "react"; // Added useEffect
 import { use } from "react"; // Added for params unwrapping
@@ -27,11 +27,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useCart } from "@/context/CartContext"; // Import useCart
+import { useAuth } from "@/context/AuthContext";
 import type { CartItem } from "@/types/cart"; // Import CartItem type
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { useRatings } from "@/context/RatingsContext";
 import type { FavoriteItem } from "@/context/FavoritesContext";
- 
+
 import { Textarea } from "@/components/ui/textarea";
 
 type UiProduct = {
@@ -93,8 +94,8 @@ export default function ProductDetailPage({
         typeof p.sizes === "string"
           ? (JSON.parse(p.sizes as string) as string[])
           : Array.isArray(p.sizes)
-          ? (p.sizes as string[])
-          : [],
+            ? (p.sizes as string[])
+            : [],
       stock: typeof p.stock === "number" ? (p.stock as number) : undefined,
       material: (p.material as string) || undefined,
       care: (p.care as string) || undefined,
@@ -147,7 +148,7 @@ export default function ProductDetailPage({
           toast({ title: "Producto eliminado", description: "Este producto fue eliminado." });
           router.replace(`/products`);
         }
-      } catch {}
+      } catch { }
     };
 
     return () => {
@@ -208,6 +209,42 @@ export default function ProductDetailPage({
   };
 
   const stock = product.stock ?? 0;
+  const { user } = useAuth(); // Import useAuth
+
+  const handleContactSeller = async () => {
+    if (!user) {
+      toast({ title: "Inicia sesión", description: "Debes iniciar sesión para contactar al vendedor." });
+      router.push("/auth/login");
+      return;
+    }
+
+    // Optimistic redirect or API call
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          storeId: product.storeId,
+          productId: product.id,
+          initialMessage: `Hola, estoy interesado en el producto "${product.name}".`,
+        }),
+      });
+
+      if (res.ok) {
+        router.push("/messages");
+        toast({ title: "Conversación iniciada", description: "Redirigiendo a tus mensajes..." });
+      } else {
+        router.push("/messages"); // Maybe it already exists
+      }
+    } catch (e) {
+      console.error(e);
+      router.push("/messages");
+    }
+  };
 
   return (
     <div className="container mx-auto flex-1 py-12 px-4 md:px-6">
@@ -256,8 +293,8 @@ export default function ProductDetailPage({
               {product.name}
             </h1>
             <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
@@ -268,214 +305,223 @@ export default function ProductDetailPage({
                 <span className="text-sm text-muted-foreground">
                   ({getRatings(String(product.id)).length || (product.reviews ?? 0)} reseñas)
                 </span>
-                </div>
-                <p className="text-3xl font-semibold text-primary">
-                  ${product.price.toFixed(2)} MXN
-                </p>
               </div>
-              <div className="flex items-center mb-4 space-x-2">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Stock disponible:
-                </span>
-                <span className={`text-sm font-semibold ${stock > 10 ? 'text-green-600' : stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
-                  {stock > 0 ? `${stock} unidades` : 'Agotado'}
-                </span>
-              </div>
-              <Card className="bg-secondary/50 border-none shadow-none">
-                <CardContent className="p-4 text-foreground/80">
-                  <p>{product.description}</p>
-                </CardContent>
-              </Card>
+              <p className="text-3xl font-semibold text-primary">
+                ${product.price.toFixed(2)} MXN
+              </p>
             </div>
+            <div className="flex items-center mb-4 space-x-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                Stock disponible:
+              </span>
+              <span className={`text-sm font-semibold ${stock > 10 ? 'text-green-600' : stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                {stock > 0 ? `${stock} unidades` : 'Agotado'}
+              </span>
+            </div>
+            <Card className="bg-secondary/50 border-none shadow-none">
+              <CardContent className="p-4 text-foreground/80">
+                <p>{product.description}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Separator />
+
+          {/* Size Selection */}
+          {product.sizes.length > 0 && (
+            <div className="mb-6">
+              <Label className="text-base font-medium mb-3 block">
+                Seleccionar Talla:
+              </Label>
+              <RadioGroup
+                value={selectedSize}
+                onValueChange={setSelectedSize}
+                className="flex flex-wrap gap-3"
+              >
+                {product.sizes.map((size) => (
+                  <Label
+                    key={size}
+                    htmlFor={`size-${size}`}
+                    className={`border rounded-md px-4 py-2 cursor-pointer transition-colors text-sm ${selectedSize === size ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent/50 hover:border-foreground/30"}`}
+                  >
+                    <RadioGroupItem
+                      value={size}
+                      id={`size-${size}`}
+                      className="sr-only"
+                    />
+                    {size}
+                  </Label>
+                ))}
+              </RadioGroup>
+            </div>
+          )}
+
+          {/* Quantity Selection */}
+          <div className="flex items-center space-x-4 mb-6">
+            <Label className="text-base font-medium">Cantidad:</Label>
+            <div className="flex items-center space-x-2 border rounded-md">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-r-none"
+                onClick={() => handleQuantityChange(-1)}
+                disabled={quantity <= 1}
+                aria-label="Disminuir cantidad"
+              >
+                -
+              </Button>
+              <span className="w-10 text-center font-medium text-lg">
+                {quantity}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-l-none"
+                onClick={() => handleQuantityChange(1)}
+                aria-label="Aumentar cantidad"
+              >
+                +
+              </Button>
+            </div>
+          </div>
+
+          <Button
+            size="lg"
+            className="w-full btn-accent text-lg py-6"
+            onClick={handleAddToCart}
+            disabled={product.sizes.length > 0 && !selectedSize}
+          >
+            <ShoppingBag className="mr-2 h-5 w-5" /> Añadir al Carrito
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full mt-3"
+            onClick={handleContactSeller}
+          >
+            Contactar al Vendedor
+          </Button>
+
+          <div className="space-y-3 text-sm text-muted-foreground border-t pt-6 mt-6">
+            <div className="flex items-center gap-2">
+              <Truck className="h-5 w-5 text-primary" />
+              <span>
+                Envío estándar gratuito en pedidos superiores a $50 MXN.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <span>Compra segura garantizada. Devoluciones fáciles.</span>
+            </div>
+          </div>
+
+          {/* Accordion for More Details */}
+          <Accordion type="single" collapsible className="w-full border-t pt-2">
+            <AccordionItem value="item-1">
+              <AccordionTrigger className="text-base">
+                Detalles del Producto
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground space-y-1">
+                <p>
+                  <strong>Material:</strong> {product.material || "N/A"}
+                </p>
+                <p>
+                  <strong>Categoría:</strong> {product.category}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+              <AccordionTrigger className="text-base">Cuidado</AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground">
+                {product.care || "Consultar etiqueta."}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div >
+      </div >
+
+      {/* Reviews Section Placeholder */}
+      < div className="mt-16 lg:mt-20" >
+        <h2 className="text-2xl font-bold mb-6 border-b pb-2">
+          Reseñas de Clientes
+        </h2>
+        <Card className="border shadow-none">
+          <CardContent className="p-6">
+            {canCurrentUserRate(String(product.id)) ? (
+              <div className="space-y-4">
+                <p className="font-medium">Tu calificación</p>
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setRatingsTick(i + 1)}
+                      aria-label={`Calificar ${i + 1} estrellas`}
+                    >
+                      <Star className={`h-6 w-6 ${ratingsTick > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`} />
+                    </button>
+                  ))}
+                </div>
+                <Textarea
+                  placeholder="Escribe un comentario (opcional)"
+                  className="mt-2"
+                  value={ratingComment}
+                  onChange={(e) => setRatingComment(e.target.value)}
+                />
+                <Button
+                  onClick={() => {
+                    const stars = Math.max(1, Math.min(5, ratingsTick));
+                    const comment = ratingComment.trim() ? ratingComment.trim() : undefined;
+                    const res = addOrUpdateRating(String(product.id), stars, comment, {
+                      storeId: (product as { storeId?: string }).storeId,
+                      productName: product.name,
+                      productLink: `/products/${product.id}`,
+                    });
+                    if (res.success) {
+                      setRatingsTick((t) => t + 0); // trigger rerender
+                      toast({ title: "Gracias por tu calificación", description: `Registrada con ${stars} estrellas.` });
+                    } else if (res.reason === "not-eligible") {
+                      toast({ variant: "destructive", title: "No elegible", description: "Debes haber comprado este producto para calificar." });
+                    } else if (res.reason === "no-auth") {
+                      toast({ variant: "destructive", title: "Inicia sesión", description: "Necesitas iniciar sesión para calificar." });
+                    } else {
+                      toast({ variant: "destructive", title: "Error", description: "No se pudo registrar tu calificación." });
+                    }
+                  }}
+                >
+                  Enviar calificación
+                </Button>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Debes haber comprado este producto para poder calificarlo.</p>
+            )}
 
             <Separator />
 
-            {/* Size Selection */}
-            {product.sizes.length > 0 && (
-              <div className="mb-6">
-                <Label className="text-base font-medium mb-3 block">
-                  Seleccionar Talla:
-                </Label>
-                <RadioGroup
-                  value={selectedSize}
-                  onValueChange={setSelectedSize}
-                  className="flex flex-wrap gap-3"
-                >
-                  {product.sizes.map((size) => (
-                    <Label
-                      key={size}
-                      htmlFor={`size-${size}`}
-                      className={`border rounded-md px-4 py-2 cursor-pointer transition-colors text-sm ${selectedSize === size ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent/50 hover:border-foreground/30"}`}
-                    >
-                      <RadioGroupItem
-                        value={size}
-                        id={`size-${size}`}
-                        className="sr-only"
-                      />
-                      {size}
-                    </Label>
-                  ))}
-                </RadioGroup>
-              </div>
-            )}
-
-            {/* Quantity Selection */}
-            <div className="flex items-center space-x-4 mb-6">
-              <Label className="text-base font-medium">Cantidad:</Label>
-              <div className="flex items-center space-x-2 border rounded-md">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-r-none"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                  aria-label="Disminuir cantidad"
-                >
-                  -
-                </Button>
-                <span className="w-10 text-center font-medium text-lg">
-                  {quantity}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-l-none"
-                  onClick={() => handleQuantityChange(1)}
-                  aria-label="Aumentar cantidad"
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-
-            <Button
-              size="lg"
-              className="w-full btn-accent text-lg py-6"
-              onClick={handleAddToCart}
-              disabled={product.sizes.length > 0 && !selectedSize}
-            >
-              <ShoppingBag className="mr-2 h-5 w-5" /> Añadir al Carrito
-            </Button>
-
-            <div className="space-y-3 text-sm text-muted-foreground border-t pt-6 mt-6">
-              <div className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-primary" />
-                <span>
-                  Envío estándar gratuito en pedidos superiores a $50 MXN.
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                <span>Compra segura garantizada. Devoluciones fáciles.</span>
-              </div>
-            </div>
-
-            {/* Accordion for More Details */}
-            <Accordion type="single" collapsible className="w-full border-t pt-2">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-base">
-                  Detalles del Producto
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground space-y-1">
-                  <p>
-                    <strong>Material:</strong> {product.material || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Categoría:</strong> {product.category}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-base">Cuidado</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  {product.care || "Consultar etiqueta."}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        </div>
-
-        {/* Reviews Section Placeholder */}
-        <div className="mt-16 lg:mt-20">
-          <h2 className="text-2xl font-bold mb-6 border-b pb-2">
-            Reseñas de Clientes
-          </h2>
-          <Card className="border shadow-none">
-            <CardContent className="p-6">
-              {canCurrentUserRate(String(product.id)) ? (
-                <div className="space-y-4">
-                  <p className="font-medium">Tu calificación</p>
-                  <div className="flex items-center gap-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setRatingsTick(i + 1)}
-                        aria-label={`Calificar ${i + 1} estrellas`}
-                      >
-                        <Star className={`h-6 w-6 ${ratingsTick > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`} />
-                      </button>
-                    ))}
-                  </div>
-                  <Textarea
-                    placeholder="Escribe un comentario (opcional)"
-                    className="mt-2"
-                    value={ratingComment}
-                    onChange={(e) => setRatingComment(e.target.value)}
-                  />
-                  <Button
-                    onClick={() => {
-                      const stars = Math.max(1, Math.min(5, ratingsTick));
-                      const comment = ratingComment.trim() ? ratingComment.trim() : undefined;
-                      const res = addOrUpdateRating(String(product.id), stars, comment, {
-                        storeId: (product as { storeId?: string }).storeId,
-                        productName: product.name,
-                        productLink: `/products/${product.id}`,
-                      });
-                      if (res.success) {
-                        setRatingsTick((t) => t + 0); // trigger rerender
-                        toast({ title: "Gracias por tu calificación", description: `Registrada con ${stars} estrellas.` });
-                      } else if (res.reason === "not-eligible") {
-                        toast({ variant: "destructive", title: "No elegible", description: "Debes haber comprado este producto para calificar." });
-                      } else if (res.reason === "no-auth") {
-                        toast({ variant: "destructive", title: "Inicia sesión", description: "Necesitas iniciar sesión para calificar." });
-                      } else {
-                        toast({ variant: "destructive", title: "Error", description: "No se pudo registrar tu calificación." });
-                      }
-                    }}
-                  >
-                    Enviar calificación
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">Debes haber comprado este producto para poder calificarlo.</p>
-              )}
-
-              <Separator />
-
-              {getRatings(String(product.id)).length > 0 ? (
-                <div className="space-y-4">
-                  {getRatings(String(product.id)).slice(0, 5).map((r, idx) => (
-                    <div key={idx} className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`h-4 w-4 ${i < r.stars ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`} />
-                          ))}
-                          <span className="text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        {r.comment && <p className="mt-1 text-sm">{r.comment}</p>}
+            {getRatings(String(product.id)).length > 0 ? (
+              <div className="space-y-4">
+                {getRatings(String(product.id)).slice(0, 5).map((r, idx) => (
+                  <div key={idx} className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-4 w-4 ${i < r.stars ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}`} />
+                        ))}
+                        <span className="text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">{r.userEmail}</span>
+                      {r.comment && <p className="mt-1 text-sm">{r.comment}</p>}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">Todavía no hay reseñas para este producto. ¡Sé el primero!</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+                    <span className="text-xs text-muted-foreground">{r.userEmail}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Todavía no hay reseñas para este producto. ¡Sé el primero!</p>
+            )}
+          </CardContent>
+        </Card>
+      </div >
+    </div >
+  );
 }

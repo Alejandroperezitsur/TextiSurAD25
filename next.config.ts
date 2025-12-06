@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
-      
+
       {
         protocol: "https",
         hostname: "images.unsplash.com",
@@ -122,17 +122,15 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "vittorioforti.com.mx",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
         hostname: "th.bing.com",
         port: "",
         pathname: "/**",
       },
     ],
+  },
+  webpack: (config) => {
+    config.externals = [...(config.externals || []), 'pg', 'pg-hstore', 'sqlite3', 'tedious', 'oracledb'];
+    return config;
   },
 };
 

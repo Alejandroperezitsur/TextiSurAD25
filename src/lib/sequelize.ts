@@ -3,8 +3,8 @@ import { Sequelize } from "sequelize";
 // Configuración de Sequelize para conectarse a la base de datos local
 const sequelize = new Sequelize(
   process.env.DB_NAME || "textisur_db",
-  process.env.DB_USER || "root",
-  process.env.DB_PASSWORD || "",
+  process.env.DB_USER || "textisur",
+  process.env.DB_PASSWORD || "SQL55H7#",
   {
     host: process.env.DB_HOST || "localhost",
     dialect: "mysql",

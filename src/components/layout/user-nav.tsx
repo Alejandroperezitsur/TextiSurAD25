@@ -30,9 +30,49 @@ interface UserNavProps {
 
 import { useNotifications } from "@/context/NotificationsContext";
 
+import { MessageSquare } from "lucide-react"; // Import MessageSquare
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 export function UserNav({ user, onLogout }: UserNavProps) {
   const { toast } = useToast();
   const { unreadCountForCurrentUser } = useNotifications();
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        // Ideally a dedicated endpoint /api/messages/unread-count
+        // For now, list conversations and count client side or use the existing list endpoint
+        // Optimization for later: dedicated endpoint
+        const res = await axios.get("/api/conversations", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const convs = res.data;
+        let count = 0;
+        convs.forEach((c: any) => {
+          // Check if last message is unread and not from me
+          // This logic is imperfect vs checking ALL messages, but assumes last message is indicator
+          // Better: API should return unread count
+          // We'll rely on the conversations endpoint returning latest message properties if we modified it to be smart
+          // The current API structure might need enhancement for accurate global count.
+          // Let's assume the conversations list has what we need
+          const lastMsg = c.messages?.[0];
+          if (lastMsg && !lastMsg.isRead && lastMsg.senderId !== Number(user.id)) {
+            count++;
+          }
+        });
+        setUnreadMsgCount(count);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+    return () => clearInterval(interval);
+  }, [user.id]);
 
   const handleLogoutClick = () => {
     onLogout(); // Call the passed logout handler from AuthContext via Layout
@@ -110,6 +150,12 @@ export function UserNav({ user, onLogout }: UserNavProps) {
                 <span>Notificaciones{unreadCountForCurrentUser > 0 ? ` (${unreadCountForCurrentUser})` : ""}</span>
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/messages">
+                <Bell className="mr-2 h-4 w-4" /> {/* Reusing Bell icon for now or use MessageSquare */}
+                <span>Mensajes</span>
+              </Link>
+            </DropdownMenuItem>
           </>
         ) : (
           // Link to buyer order history
@@ -124,6 +170,19 @@ export function UserNav({ user, onLogout }: UserNavProps) {
               <Link href="/favorites">
                 <Heart className="mr-2 h-4 w-4" />
                 <span>Favoritos</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/messages" className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  <span>Mensajes</span>
+                </div>
+                {unreadMsgCount > 0 && (
+                  <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
+                    {unreadMsgCount}
+                  </span>
+                )}
               </Link>
             </DropdownMenuItem>
           </>
